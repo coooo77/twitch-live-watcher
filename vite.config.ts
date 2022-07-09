@@ -16,29 +16,29 @@ export default defineConfig({
         entry: 'electron/main/index.ts',
         vite: {
           build: {
-            outDir: 'dist/electron/main',
-          },
-        },
+            outDir: 'dist/electron/main'
+          }
+        }
       },
       preload: {
         input: {
           // You can configure multiple preload here
-          index: join(__dirname, 'electron/preload/index.ts'),
+          index: join(__dirname, 'electron/preload/index.ts')
         },
         vite: {
           build: {
             // For debug
             sourcemap: 'inline',
-            outDir: 'dist/electron/preload',
+            outDir: 'dist/electron/preload'
           }
         }
       },
       // Enables use of Node.js API in the Renderer-process
-      renderer: {},
-    }),
+      renderer: {}
+    })
   ],
   server: {
     host: pkg.env.VITE_DEV_SERVER_HOST,
-    port: pkg.env.VITE_DEV_SERVER_PORT,
-  },
+    port: pkg.env.VITE_DEV_SERVER_PORT
+  }
 })
