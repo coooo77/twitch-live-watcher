@@ -50,7 +50,7 @@ export default defineConfig({
         /\.vue\?vue/, // .vue
         /\.md$/ // .md
       ],
-      imports: ['vue']
+      imports: ['vue', 'vue-router']
     })
   ],
   server: {
