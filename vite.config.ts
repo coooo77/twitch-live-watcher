@@ -6,6 +6,7 @@ import electron from 'vite-plugin-electron'
 import pkg from './package.json'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import AutoImport from 'unplugin-auto-import/vite'
 
 rmSync('dist', { recursive: true, force: true }) // v14.14.0
 
@@ -40,6 +41,16 @@ export default defineConfig({
     }),
     Components({
       resolvers: [ElementPlusResolver()]
+    }),
+    AutoImport({
+      // targets to transform
+      include: [
+        /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
+        /\.vue$/,
+        /\.vue\?vue/, // .vue
+        /\.md$/ // .md
+      ],
+      imports: ['vue']
     })
   ],
   server: {
