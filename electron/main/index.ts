@@ -1,6 +1,7 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
-import { release } from 'os'
+import { app, BrowserWindow, shell, ipcMain, session } from 'electron'
+import { release, homedir } from 'os'
 import { join } from 'path'
+import { existsSync, readdirSync } from 'fs'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -19,7 +20,7 @@ export const ROOT_PATH = {
   // /dist
   dist: join(__dirname, '../..'),
   // /dist or /public
-  public: join(__dirname, app.isPackaged ? '../..' : '../../../public'),
+  public: join(__dirname, app.isPackaged ? '../..' : '../../../public')
 }
 
 let win: BrowserWindow | null = null
@@ -30,14 +31,16 @@ const url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_D
 const indexHtml = join(ROOT_PATH.dist, 'index.html')
 
 async function createWindow() {
+  loadDevTools()
+
   win = new BrowserWindow({
     title: 'Main window',
     icon: join(ROOT_PATH.public, 'favicon.ico'),
     webPreferences: {
       preload,
       nodeIntegration: true,
-      contextIsolation: false,
-    },
+      contextIsolation: false
+    }
   })
 
   if (app.isPackaged) {
@@ -87,8 +90,8 @@ app.on('activate', () => {
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload,
-    },
+      preload
+    }
   })
 
   if (app.isPackaged) {
@@ -98,3 +101,22 @@ ipcMain.handle('open-win', (event, arg) => {
     // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
   }
 })
+
+async function loadDevTools() {
+  let devToolsPath = ''
+
+  if (app.isPackaged) {
+    devToolsPath = join(
+      homedir(),
+      '/AppData/Local/Google/Chrome/User Data/Default/Extensions/ljjemllljcmogpfapbkkighbhhppjdbg/6.0.0.21_0'
+    )
+  } else {
+    const extensionDir = join(process.cwd(), './extensions/vue-dev-tools')
+
+    devToolsPath = join(extensionDir, readdirSync(extensionDir)[0])
+  }
+
+  if (!existsSync(devToolsPath)) return
+
+  await session.defaultSession.loadExtension(devToolsPath)
+}
