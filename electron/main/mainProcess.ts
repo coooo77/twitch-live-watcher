@@ -68,6 +68,7 @@ export default class Main {
       frame: false,
       transparent: true,
       hasShadow: false,
+      minWidth: 600,
       webPreferences: {
         preload: Main.preload,
         nodeIntegration: true,

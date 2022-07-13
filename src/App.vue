@@ -4,7 +4,10 @@
 </script>
 
 <template>
-  <Layout> this is content </Layout>
+  <Layout>
+    <Menu />
+    <div class="pageView grow p-2">this is router view</div>
+  </Layout>
 </template>
 
 <style>
@@ -12,5 +15,6 @@
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <nav class="flex flex-nowrap justify-end gap-[0.5px] pt-[4px] px-[4px] drag">
+  <nav class="flex flex-nowrap justify-end gap-[0.5px] pt-[4px] px-[4px] drag w-full">
     <!-- prettier-ignore -->
     <Icon
       class="hover:bg-themeColor4 hover:text-themeColor1 text-themeColor4 no-drag"
