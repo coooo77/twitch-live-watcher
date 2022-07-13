@@ -17,6 +17,7 @@
     "@iconify/vue": "^3.2.1",
     "@vitejs/plugin-vue": "^2.3.3",
     "autoprefixer": "^10.4.7",
+    "axios": "^0.27.2",
     "electron": "^19.0.8",
     "electron-builder": "^23.1.0",
     "element-plus": "^2.2.9",
@@ -43,5 +44,9 @@
     "vite",
     "vue3",
     "vue"
-  ]
+  ],
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "keytar": "^7.9.0"
+  }
 }
