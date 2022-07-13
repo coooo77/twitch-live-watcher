@@ -65,6 +65,9 @@ export default class Main {
     Main.electronWindow = new BrowserWindow({
       title: 'Main window',
       icon: join(Main.ROOT_PATH.public, 'favicon.ico'),
+      frame: false,
+      transparent: true,
+      hasShadow: false,
       webPreferences: {
         preload: Main.preload,
         nodeIntegration: true,
@@ -92,11 +95,7 @@ export default class Main {
     })
   }
 
-  static init() {
-    Main.beforeInit()
-
-    app.whenReady().then(Main.createWindow)
-
+  static listenApp() {
     app.on('window-all-closed', () => {
       Main.electronWindow = null
 
@@ -125,7 +124,9 @@ export default class Main {
     app.on('window-all-closed', () => {
       app.quit()
     })
+  }
 
+  static listenIpcMain() {
     // new window example arg: new windows url
     ipcMain.handle('open-win', (event, arg) => {
       const childWindow = new BrowserWindow({
@@ -142,5 +143,39 @@ export default class Main {
         // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
       }
     })
+
+    ipcMain.on('navbar', (event, val: 'mini' | 'restore' | 'close') => {
+      const window: Electron.BrowserWindow | null = BrowserWindow.fromWebContents(event.sender)
+
+      switch (val) {
+        case 'mini':
+          window?.minimize()
+          break
+        case 'close':
+          window?.close()
+          break
+        case 'restore':
+          if (window?.isMaximized()) {
+            window?.unmaximize()
+            window?.setResizable(true)
+          } else {
+            window?.maximize()
+            window?.setResizable(false)
+          }
+          break
+        default:
+          break
+      }
+    })
+  }
+
+  static init() {
+    Main.beforeInit()
+
+    app.whenReady().then(Main.createWindow)
+
+    Main.listenApp()
+
+    Main.listenIpcMain()
   }
 }
