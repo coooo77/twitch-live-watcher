@@ -60,6 +60,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import routes from '../router/routes'
+import { ipcRenderer } from 'electron'
 import { RouteRecordName } from 'vue-router'
 
 const iconSize = 30
@@ -72,7 +73,7 @@ const isExpand = ref(true)
 
 const goToPage = (name?: RouteRecordName) => router.push({ name })
 
-const logout = () => console.log('logout')
+const logout = () => ipcRenderer.send('logout')
 
 const toggle = () => {
   isExpand.value = !isExpand.value

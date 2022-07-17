@@ -1,5 +1,7 @@
 import { join } from 'path'
 import { release, homedir } from 'os'
+import AuthProcess from './authProcess'
+import AuthService from './util/authService'
 import { existsSync, readdirSync } from 'fs'
 import { app, BrowserWindow, shell, ipcMain, session } from 'electron'
 
@@ -65,9 +67,9 @@ export default class Main {
     Main.electronWindow = new BrowserWindow({
       title: 'Main window',
       icon: join(Main.ROOT_PATH.public, 'favicon.ico'),
-      frame: false,
-      transparent: true,
-      hasShadow: false,
+      // frame: false,
+      // transparent: true,
+      // hasShadow: false,
       minWidth: 600,
       webPreferences: {
         preload: Main.preload,
@@ -128,6 +130,11 @@ export default class Main {
   }
 
   static listenIpcMain() {
+    // prettier-ignore
+    ;['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
+
+    ;['open-win'].forEach((event) => ipcMain?.removeHandler(event))
+
     // new window example arg: new windows url
     ipcMain.handle('open-win', (event, arg) => {
       const childWindow = new BrowserWindow({
@@ -168,6 +175,22 @@ export default class Main {
           break
       }
     })
+
+    ipcMain.on('logout', async (event, args) => {
+      await AuthService.logout()
+
+      Main.destroyAppWin()
+
+      AuthProcess.createAuthWindow()
+    })
+  }
+
+  static destroyAppWin() {
+    if (!Main.electronWindow) return
+
+    Main.electronWindow.close()
+
+    Main.electronWindow = null
   }
 
   static init() {
