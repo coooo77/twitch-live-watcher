@@ -1,3 +1,530 @@
 <template>
-  <div class="pageView">config page</div>
+  <div
+    class="pageView flex flex-col grow"
+    v-loading="loading"
+    element-loading-background="transparent"
+    element-loading-text="Loading..."
+  >
+    <div class="controllers mb-2">
+      <el-button
+        color="#576F72"
+        plain
+        :disable="!isConfigChanged"
+        @click="saveConfig"
+      >
+        <strong>Save</strong>
+      </el-button>
+
+      <el-button color="#576F72" @click="importConfig">
+        <strong>Import</strong>
+      </el-button>
+
+      <el-button color="#576F72" @click="exportConfig">
+        <strong>Export</strong>
+      </el-button>
+
+      <el-popconfirm
+        title="Are you sure to resume config to default?"
+        @confirm="resumeConfig"
+      >
+        <template #reference>
+          <el-button type="danger">
+            <strong>Default</strong>
+          </el-button>
+        </template>
+      </el-popconfirm>
+    </div>
+
+    <div class="configs relative grow" v-if="configuration">
+      <div class="responsive absolute inset-0">
+        <el-scrollbar>
+          <el-collapse v-model="activeNames" accordion>
+            <el-collapse-item name="defaultStreamerSetting">
+              <template #title>
+                <div class="collapseTitle">Default Streamer Setting</div>
+              </template>
+
+              <div class="configContent">
+                <InputRow title="Enable Record">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.enableRecord"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.enableRecord" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Enable Notify">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.enableNotify"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.enableNotify" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Enable Record VOD">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.vodEnableRecordVOD"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.vodEnableRecordVOD" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Is Stop Record Stream">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.vodIsStopRecordStream"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.vodIsStopRecordStream" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Download If No Vod">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.vodGetStreamIfNoVod"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.vodGetStreamIfNoVod" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="VOD Download Mode">
+                  <div
+                    class="vodDownloadMode flex flex-nowrap items-center gap-2"
+                  >
+                    <el-select
+                      v-model="configuration.record.vodMode"
+                      placeholder="Select"
+                      size="small"
+                    >
+                      <el-option
+                        v-for="item in recordModeList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+
+                    <template
+                      v-if="configuration.record.vodMode === 'countDown'"
+                    >
+                      <el-input-number
+                        v-model="configuration.record.vodCountDownInMinutes"
+                        :min="0"
+                        :max="1440"
+                        size="small"
+                        controls-position="right"
+                      />
+
+                      <div class="font-bold text-themeColor4">minutes</div>
+                    </template>
+
+                    <template
+                      v-else-if="configuration.record.vodMode === 'timeZone'"
+                    >
+                      <el-time-picker
+                        v-model="configuration.record.vodTimeZone"
+                        placeholder="time zone"
+                        size="small"
+                        :clearable="false"
+                      />
+                    </template>
+                  </div>
+
+                  <template #popIcon>
+                    <Explanation :content="record.vodMode">
+                      <template #popContent>
+                        <el-table :data="vodModeExplanation">
+                          <!-- prettier-ignore -->
+                          <el-table-column
+                             width="120"
+                             property="mode"
+                             label="Mode"
+                           />
+
+                          <el-table-column
+                            width="300"
+                            property="explanation"
+                            label="Explanation"
+                          />
+                        </el-table>
+                      </template>
+                    </Explanation>
+                  </template>
+                </InputRow>
+
+                <InputRow title="VOD Filename Template">
+                  <el-input
+                    size="small"
+                    v-model="configuration.record.vodFileNameTemplate"
+                    placeholder="Filename Template For VOD"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.vodFileNameTemplate">
+                      <template #popContent>
+                        <el-table :data="wildcardExplanation">
+                          <!-- prettier-ignore -->
+                          <el-table-column
+                             width="auto"
+                             property="wildcard"
+                             label="Wildcard"
+                           />
+
+                          <el-table-column
+                            width="auto"
+                            property="description"
+                            label="Description"
+                          />
+                          <el-table-column
+                            width="auto"
+                            property="example"
+                            label="Example"
+                          />
+                        </el-table>
+                      </template>
+                    </Explanation>
+                  </template>
+                </InputRow>
+
+                <InputRow title="Live Filename Template">
+                  <el-input
+                    size="small"
+                    v-model="configuration.record.fileNameTemplate"
+                    placeholder="Filename Template For Live Record"
+                  />
+
+                  <template #popIcon>
+                    <Explanation :content="record.fileNameTemplate" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Enable Tag Check">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.record.checkStreamContentTypeEnable"
+                  />
+
+                  <template #popIcon>
+                    <Explanation
+                      :content="record.checkStreamContentTypeEnable"
+                    />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Game Tag List">
+                  <el-input
+                    size="small"
+                    v-model="
+                      configuration.record.checkStreamContentTypeTargetGameNames
+                    "
+                    placeholder="write game tag here"
+                  />
+
+                  <template #popIcon>
+                    <Explanation
+                      :content="record.checkStreamContentTypeTargetGameNames"
+                    />
+                  </template>
+                </InputRow>
+              </div>
+            </el-collapse-item>
+
+            <el-collapse-item name="generalSetting">
+              <template #title>
+                <div class="collapseTitle">General Setting</div>
+              </template>
+
+              <div class="configContent">
+                <InputRow title="Check Stream Interval">
+                  <el-input-number
+                    v-model="configuration.general.checkStreamInterval"
+                    :min="30"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.checkStreamInterval" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Directory to Save">
+                  <div class="dirToSaveRecord flex flex-nowrap gap-2">
+                    <el-input
+                      disabled
+                      size="small"
+                      v-model="configuration.general.dirToSaveRecord"
+                      placeholder="Filename Template For VOD"
+                    />
+
+                    <el-button
+                      size="small"
+                      @click="setRecordSaveDir"
+                      color="#576F72"
+                    >
+                      <strong>Edit</strong>
+                    </el-button>
+                  </div>
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.dirToSaveRecord" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Number of Record limit">
+                  <el-input-number
+                    v-model="configuration.general.numOfDownloadLimit"
+                    :min="0"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.numOfDownloadLimit" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Is Show Cmd">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.general.showDownloadCmd"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.showDownloadCmd" />
+                  </template>
+                </InputRow>
+              </div>
+            </el-collapse-item>
+
+            <el-collapse-item name="vodSetting">
+              <template #title>
+                <div class="collapseTitle">VOD Setting</div>
+              </template>
+
+              <div class="configContent">
+                <InputRow title="Download Retry Interval">
+                  <el-input-number
+                    v-model="configuration.vod.reTryDownloadInterval"
+                    :min="0"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="vod.reTryDownloadInterval" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Max ReDownload Times">
+                  <el-input-number
+                    v-model="configuration.vod.maxReDownloadTimes"
+                    :min="0"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="vod.maxReDownloadTimes" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Integrity Check">
+                  <el-switch
+                    size="small"
+                    v-model="configuration.vod.IntegrityCheck"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="vod.IntegrityCheck" />
+                  </template>
+                </InputRow>
+
+                <InputRow
+                  v-show="configuration.vod.IntegrityCheck"
+                  title="Loss Duration Allowed"
+                >
+                  <el-input-number
+                    v-model="configuration.vod.LossOfVODDurationAllowed"
+                    :min="0"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="vod.LossOfVODDurationAllowed" />
+                  </template>
+                </InputRow>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
+        </el-scrollbar>
+      </div>
+    </div>
+  </div>
 </template>
+
+<script setup lang="ts">
+import fs from 'fs'
+import Notify from '../util/notify'
+import ModelSystem from '../util/model'
+import { Config } from '../types/config'
+import ConfigSystem from '../util/config'
+import {
+  getDirPath,
+  getExportJSONPath,
+  getImportJSONPath
+} from '../util/common'
+
+const configuration = ref<Config>()
+
+const activeNames = ref(['defaultStreamerSetting'])
+
+const loading = ref(true)
+
+const isConfigChanged = ref(false)
+
+const { vod, record, general } = ConfigSystem.explanation
+
+const { recordModeList, vodModeExplanation, wildcardExplanation } = ConfigSystem
+
+const setRecordSaveDir = async () => {
+  if (!configuration.value) return
+
+  const res = await getDirPath()
+
+  if (!res) return
+
+  configuration.value.general.dirToSaveRecord = res
+}
+
+const saveConfig = async () => {
+  if (!configuration.value) return
+
+  try {
+    ModelSystem.setConfig(configuration.value)
+
+    Notify.success('configuration saved successfully')
+  } catch (error) {
+    console.error(error)
+
+    Notify.warn('fail to save configuration')
+  }
+}
+
+const importConfig = async () => {
+  const jsonPath = await getImportJSONPath()
+
+  if (!jsonPath) return
+
+  try {
+    // TODO: data validation
+    const rawData = fs.readFileSync(jsonPath).toString()
+
+    if (!rawData) throw Error('Invalid JSON file')
+
+    configuration.value = JSON.parse(rawData)
+
+    ModelSystem.setConfig(configuration.value)
+
+    Notify.success('configuration imported successfully')
+  } catch (error) {
+    console.error(error)
+
+    Notify.warn('fail to import configuration')
+  }
+}
+
+const exportConfig = async () => {
+  try {
+    const jsonPath = await getExportJSONPath('config', 'Export Config')
+
+    if (!jsonPath) return
+
+    Notify.success('configuration exported successfully')
+  } catch (error) {
+    console.error(error)
+
+    Notify.warn('fail to export configuration')
+  }
+}
+
+const resumeConfig = async () => {
+  try {
+    configuration.value = ConfigSystem.defaultSetting
+
+    ModelSystem.setConfig(configuration.value)
+
+    Notify.success('resume default configuration successfully')
+  } catch (error) {
+    console.error(error)
+
+    Notify.warn('fail to resume default configuration')
+  }
+}
+
+watch(
+  isConfigChanged,
+  (oldValue, newValue) => {
+    if (oldValue === undefined) return
+
+    isConfigChanged.value = true
+  },
+  { deep: false }
+)
+
+onBeforeMount(async () => {
+  try {
+    const config = await ModelSystem.getConfig()
+
+    if (config) configuration.value = config
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
+
+<style scoped>
+:deep(.el-collapse-item) {
+  --el-collapse-border-color: #576f72;
+  --el-collapse-header-bg-color: #f0ebe3;
+  --el-collapse-content-bg-color: #f0ebe3;
+}
+
+.el-switch {
+  --el-switch-on-color: #576f72;
+  /* --el-switch-off-color: #7D9D9C; */
+  --el-switch-border-color: #7d9d9c;
+}
+
+.collapseTitle {
+  @apply text-xl font-bold text-themeColor4;
+}
+
+.configContent {
+  @apply flex flex-col gap-1;
+}
+</style>

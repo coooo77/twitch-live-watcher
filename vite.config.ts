@@ -56,5 +56,8 @@ export default defineConfig({
   server: {
     host: pkg.env.VITE_DEV_SERVER_HOST,
     port: pkg.env.VITE_DEV_SERVER_PORT
+  },
+  define: {
+    'process.env.ROOT_PATH': JSON.stringify(__dirname)
   }
 })

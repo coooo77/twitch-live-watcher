@@ -3,7 +3,16 @@ import { release, homedir } from 'os'
 import AuthProcess from './authProcess'
 import AuthService from './util/authService'
 import { existsSync, readdirSync } from 'fs'
-import { app, BrowserWindow, shell, ipcMain, session } from 'electron'
+import {
+  app,
+  shell,
+  dialog,
+  ipcMain,
+  session,
+  BrowserWindow,
+  OpenDialogSyncOptions,
+  SaveDialogSyncOptions
+} from 'electron'
 
 export default class Main {
   static ROOT_PATH = {
@@ -131,8 +140,9 @@ export default class Main {
 
   static listenIpcMain() {
     // prettier-ignore
-    ;['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
+    ['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
 
+    ;
     ;['open-win'].forEach((event) => ipcMain?.removeHandler(event))
 
     // new window example arg: new windows url
@@ -151,6 +161,10 @@ export default class Main {
         // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
       }
     })
+
+    ipcMain.handle('showOpenDialog', (event, args: OpenDialogSyncOptions) => dialog.showOpenDialogSync(args))
+
+    ipcMain.handle('showSaveDialog', (event, args: SaveDialogSyncOptions) => dialog.showSaveDialogSync(args))
 
     ipcMain.on('navbar', (event, val: 'mini' | 'restore' | 'close') => {
       const window: Electron.BrowserWindow | null = BrowserWindow.fromWebContents(event.sender)
