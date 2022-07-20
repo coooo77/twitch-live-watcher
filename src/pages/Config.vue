@@ -390,15 +390,13 @@ import fs from 'fs'
 import ModelSystem from '../util/model'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
-import {
-  getDirPath,
-  timeString,
-  getExportJSONPath,
-  getImportJSONPath
-} from '../util/common'
+import { getDirPath } from '../util/common'
+import { handleJsonFile } from '../composable/common'
 import { useNotification } from '../store/notification'
 
 const notify = useNotification()
+
+const { importJSON, exportJSON } = handleJsonFile()
 
 const configuration = ref<Config>()
 
@@ -436,44 +434,17 @@ const saveConfig = async () => {
   }
 }
 
-const importConfig = async () => {
-  const jsonPath = await getImportJSONPath()
+const assignConfig = async (importData: Config) => {
+  // TODO: data validation
+  configuration.value = importData
 
-  if (!jsonPath) return
-
-  try {
-    // TODO: data validation
-    const rawData = fs.readFileSync(jsonPath).toString()
-
-    if (!rawData) throw Error('Invalid JSON file')
-
-    configuration.value = JSON.parse(rawData)
-
-    ModelSystem.setConfig(configuration.value)
-
-    notify.success('configuration imported successfully')
-  } catch (error) {
-    console.error(error)
-
-    notify.warn('fail to import configuration')
-  }
+  await ModelSystem.setConfig(configuration.value)
 }
 
-const exportConfig = async () => {
-  try {
-    const { pre, post } = timeString()
-    
-    const jsonPath = await getExportJSONPath(`config_${pre}_${post}`, 'Export Config')
+const importConfig = async () => await importJSON(assignConfig)
 
-    if (!jsonPath) return
-
-    notify.success('configuration exported successfully')
-  } catch (error) {
-    console.error(error)
-
-    notify.warn('fail to export configuration')
-  }
-}
+const exportConfig = async () =>
+  await exportJSON(configuration.value, 'config', 'Export Config')
 
 const resumeConfig = async () => {
   try {
