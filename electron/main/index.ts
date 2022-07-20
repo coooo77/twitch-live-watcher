@@ -1,10 +1,500 @@
-import dotenv from 'dotenv'
-import { app } from 'electron'
-import MainProcess from './mainProcess'
-import AuthProcess from './authProcess'
-import AuthService from './util/authService'
+import {
+  app,
+  shell,
+  dialog,
+  ipcMain,
+  session,
+  BrowserWindow,
+  WebRequestFilter,
+  OpenDialogSyncOptions,
+  SaveDialogSyncOptions
+} from 'electron'
+import keytar from 'keytar'
+import { join } from 'path'
+import * as dotenv from 'dotenv'
+import { release, homedir, userInfo } from 'os'
+import axios, { AxiosRequestConfig } from 'axios'
+import { existsSync, readdirSync, writeFileSync } from 'fs'
 
-dotenv.config()
+const envPath = app.isPackaged
+  ? join(__dirname, '..', '..', '.env')
+  : join(__dirname, '..', '..', '..', '.env')
+
+dotenv.config({ path: envPath })
+
+class MainProcess {
+  static ROOT_PATH = {
+    // /dist
+    dist: join(__dirname, '../..'),
+    // /dist or /public
+    public: join(__dirname, app.isPackaged ? '../..' : '../../../public')
+  }
+
+  static electronWindow: BrowserWindow | null = null
+
+  // Here, you can also use other preload
+  static preload = join(__dirname, '../preload/index.js')
+
+  // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
+  static url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
+
+  static indexHtml = join(MainProcess.ROOT_PATH.dist, 'index.html')
+
+  static beforeInit() {
+    // Disable GPU Acceleration for Windows 7
+    if (release().startsWith('6.1')) {
+      app.disableHardwareAcceleration()
+    }
+
+    // Set application name for Windows 10+ notifications
+    if (process.platform === 'win32') {
+      app.setAppUserModelId(app.getName())
+    }
+
+    if (!app.requestSingleInstanceLock()) {
+      app.quit()
+      process.exit(0)
+    }
+
+    process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
+  }
+
+  static async loadDevTools() {
+    let devToolsPath = ''
+
+    if (app.isPackaged) {
+      devToolsPath = join(
+        homedir(),
+        '/AppData/Local/Google/Chrome/User Data/Default/Extensions/ljjemllljcmogpfapbkkighbhhppjdbg/6.0.0.21_0'
+      )
+    } else {
+      const extensionDir = join(process.cwd(), './extensions/vue-dev-tools')
+
+      devToolsPath = join(extensionDir, readdirSync(extensionDir)[0])
+    }
+
+    if (!existsSync(devToolsPath)) return
+
+    await session.defaultSession.loadExtension(devToolsPath)
+  }
+
+  static async createWindow() {
+    MainProcess.loadDevTools()
+
+    MainProcess.electronWindow = new BrowserWindow({
+      title: 'Main window',
+      icon: join(MainProcess.ROOT_PATH.public, 'favicon.ico'),
+      // frame: false,
+      // transparent: true,
+      // hasShadow: false,
+      minWidth: 600,
+      webPreferences: {
+        preload: MainProcess.preload,
+        nodeIntegration: true,
+        contextIsolation: false
+      }
+    })
+
+    if (app.isPackaged) {
+      MainProcess.electronWindow.loadFile(MainProcess.indexHtml)
+    } else {
+      MainProcess.electronWindow.loadURL(MainProcess.url)
+
+      // MainProcess.electronWindow.webContents.openDevTools()
+    }
+
+    // Test actively push message to the Electron-Renderer
+    MainProcess.electronWindow.webContents.on('did-finish-load', () => {
+      MainProcess.electronWindow?.webContents.send(
+        'main-process-message',
+        new Date().toLocaleString()
+      )
+    })
+
+    // Make all links open with the browser, not with the application
+    MainProcess.electronWindow.webContents.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith('https:')) shell.openExternal(url)
+      return { action: 'deny' }
+    })
+  }
+
+  static listenApp() {
+    app.on('window-all-closed', () => {
+      MainProcess.electronWindow = null
+
+      if (process.platform !== 'darwin') app.quit()
+    })
+
+    app.on('second-instance', () => {
+      if (!MainProcess.electronWindow) return
+
+      // Focus on the main window if the user tried to open another
+      if (MainProcess.electronWindow.isMinimized())
+        MainProcess.electronWindow.restore()
+
+      MainProcess.electronWindow.focus()
+    })
+
+    app.on('activate', () => {
+      const allWindows = BrowserWindow.getAllWindows()
+      if (allWindows.length) {
+        allWindows[0].focus()
+      } else {
+        MainProcess.createWindow()
+      }
+    })
+
+    // Quit when all windows are closed.
+    app.on('window-all-closed', () => {
+      app.quit()
+    })
+  }
+
+  static listenIpcMain() {
+    // prettier-ignore
+    ['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
+
+    ;
+    ;['open-win'].forEach((event) => ipcMain?.removeHandler(event))
+
+    // new window example arg: new windows url
+    ipcMain.handle('open-win', (event, arg) => {
+      const childWindow = new BrowserWindow({
+        webPreferences: {
+          preload: MainProcess.preload
+        }
+      })
+
+      if (app.isPackaged) {
+        childWindow.loadFile(MainProcess.indexHtml, { hash: arg })
+      } else {
+        childWindow.loadURL(`${MainProcess.url}/#${arg}`)
+
+        // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
+      }
+    })
+
+    ipcMain.handle('showOpenDialog', (event, args: OpenDialogSyncOptions) =>
+      dialog.showOpenDialogSync(args)
+    )
+
+    ipcMain.handle('showSaveDialog', (event, args: SaveDialogSyncOptions) =>
+      dialog.showSaveDialogSync(args)
+    )
+
+    ipcMain.on('navbar', (event, val: 'mini' | 'restore' | 'close') => {
+      const window: Electron.BrowserWindow | null =
+        BrowserWindow.fromWebContents(event.sender)
+
+      switch (val) {
+        case 'mini':
+          window?.minimize()
+          break
+        case 'close':
+          window?.close()
+          break
+        case 'restore':
+          if (window?.isMaximized()) {
+            window?.unmaximize()
+            window?.setResizable(true)
+          } else {
+            window?.maximize()
+            window?.setResizable(false)
+          }
+          break
+        default:
+          break
+      }
+    })
+
+    ipcMain.on('logout', async (event, args) => {
+      await AuthService.logout()
+
+      MainProcess.destroyAppWin()
+
+      AuthProcess.createAuthWindow()
+    })
+  }
+
+  static destroyAppWin() {
+    if (!MainProcess.electronWindow) return
+
+    MainProcess.electronWindow.close()
+
+    MainProcess.electronWindow = null
+  }
+
+  static init() {
+    MainProcess.beforeInit()
+
+    app.whenReady().then(MainProcess.createWindow)
+
+    MainProcess.listenApp()
+
+    MainProcess.listenIpcMain()
+  }
+}
+
+class AuthProcess {
+  public static authWindow: null | BrowserWindow = null
+
+  public static createAuthWindow() {
+    AuthProcess.destroyAuthWin()
+
+    AuthProcess.authWindow = new BrowserWindow({
+      width: 480,
+      height: 800,
+      webPreferences: {
+        nodeIntegration: false
+      }
+    })
+
+    const v = { url: AuthService.authenticationURL() }
+
+    writeFileSync(join(homedir(), 'test.json'), JSON.stringify(v), 'utf8')
+
+    AuthProcess.authWindow.loadURL(AuthService.authenticationURL())
+
+    AuthProcess.authWindow.webContents.openDevTools()
+
+    const {
+      session: { webRequest }
+    } = AuthProcess.authWindow.webContents
+
+    const filter: WebRequestFilter = {
+      urls: [`${process.env['VITE_REDIRECT_URL']}*`]
+    }
+
+    webRequest.onBeforeRequest(
+      filter,
+      AuthProcess.handleRequest.bind(AuthProcess)
+    )
+
+    AuthProcess.authWindow.once('closed', () => (AuthProcess.authWindow = null))
+  }
+
+  private static async handleRequest(param: { url: string }) {
+    await AuthService.loadTokens(param.url)
+
+    await AuthService.getUserInfo()
+
+    MainProcess.init()
+
+    return AuthProcess.destroyAuthWin()
+  }
+
+  private static destroyAuthWin() {
+    if (!AuthProcess.authWindow) return
+
+    AuthProcess.authWindow.close()
+
+    AuthProcess.authWindow = null
+  }
+
+  public static createLogoutWindow() {
+    const logoutWindow = new BrowserWindow({
+      show: false
+    })
+
+    logoutWindow.on('ready-to-show', async () => {
+      logoutWindow.close()
+
+      await AuthService.logout()
+    })
+  }
+}
+
+class AuthService {
+  private static state = Math.random().toString(36).substring(2, 15)
+
+  private static readonly keytarAccount = userInfo().username
+
+  private static readonly userIDService = 'userID'
+
+  private static readonly accessService = 'accessToken'
+
+  private static readonly refreshService = 'refreshToken'
+
+  public static accessToken = ''
+
+  public static userName = ''
+
+  public static userID = ''
+
+  public static authenticationURL() {
+    return (
+      `${process.env['VITE_BASE_URL']}/authorize?` +
+      `redirect_uri=${process.env['VITE_REDIRECT_URL']}` +
+      '&' +
+      `client_id=${process.env['VITE_CLIENT_ID']}` +
+      '&' +
+      'scope=user:read:follows' +
+      '&' +
+      'response_type=code' +
+      '&' +
+      'force_verify=true' +
+      '&' +
+      `state=${AuthService.state}`
+    )
+  }
+
+  public static async refreshTokens() {
+    const refreshToken = await keytar.getPassword(
+      AuthService.refreshService,
+      AuthService.keytarAccount
+    )
+
+    if (!refreshToken) throw new Error('No available refresh token.')
+
+    try {
+      const refreshOptions: AxiosRequestConfig = {
+        method: 'POST',
+        url: `${process.env['VITE_BASE_URL']}/token`,
+        headers: { 'content-type': 'application/json' },
+        data: {
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: process.env['VITE_CLIENT_ID'],
+          client_secret: process.env['VITE_CLIENT_SECRET']
+        },
+        adapter: require('axios/lib/adapters/http')
+      }
+
+      const response = await axios(refreshOptions)
+
+      const { access_token, refresh_token } = response.data
+
+      await Promise.allSettled([
+        AuthService.setKeyChain(access_token, AuthService.accessService),
+        AuthService.setKeyChain(refresh_token, AuthService.refreshService)
+      ])
+
+      AuthService.accessToken = access_token
+    } catch (error) {
+      await AuthService.logout()
+
+      // TODO: ERROR LOG
+      throw error
+    }
+  }
+
+  public static async loadTokens(callbackURL: string) {
+    const params = new URL(callbackURL)
+
+    if (AuthService.state !== params.searchParams.get('state')) {
+      throw new Error(`Invalid state in callbackURL`)
+    }
+
+    const exchangeOptions = {
+      grant_type: 'authorization_code',
+      code: params.searchParams.get('code'),
+      client_id: process.env['VITE_CLIENT_ID'],
+      redirect_uri: process.env['VITE_REDIRECT_URL'],
+      client_secret: process.env['VITE_CLIENT_SECRET']
+    }
+
+    const options: AxiosRequestConfig = {
+      method: 'POST',
+      data: JSON.stringify(exchangeOptions),
+      url: `${process.env['VITE_BASE_URL']}/token`,
+      headers: { 'content-type': 'application/json' },
+      adapter: require('axios/lib/adapters/http')
+    }
+
+    try {
+      const response = await axios(options)
+
+      const { access_token, refresh_token } = response.data
+
+      await Promise.allSettled([
+        AuthService.setKeyChain(access_token, AuthService.accessService),
+        AuthService.setKeyChain(refresh_token, AuthService.refreshService)
+      ])
+
+      AuthService.accessToken = access_token
+    } catch (error) {
+      await AuthService.logout()
+
+      // TODO: ERROR LOG
+      throw error
+    }
+  }
+
+  private static async setKeyChain(
+    token: string,
+    type: 'refreshToken' | 'accessToken' | 'userID'
+  ) {
+    if (!token) return
+
+    await keytar.setPassword(type, AuthService.keytarAccount, token)
+  }
+
+  public static async logout() {
+    // await AuthService.clearCookie()
+
+    await Promise.allSettled([
+      keytar.deletePassword(
+        AuthService.accessService,
+        AuthService.keytarAccount
+      ),
+      keytar.deletePassword(
+        AuthService.refreshService,
+        AuthService.keytarAccount
+      ),
+      keytar.deletePassword(
+        AuthService.userIDService,
+        AuthService.keytarAccount
+      )
+    ])
+
+    AuthService.accessToken = ''
+
+    AuthService.userID = ''
+
+    AuthService.userName = ''
+  }
+
+  public static async clearCookie() {
+    try {
+      const cookies = await session.defaultSession.cookies.get({})
+
+      for (let cookie of cookies) {
+        let url = ''
+
+        url += cookie.secure ? 'https://' : 'http://'
+
+        url += cookie.domain?.charAt(0) === '.' ? 'www' : ''
+
+        url += cookie.domain || ''
+
+        url += cookie.path || ''
+
+        await session.defaultSession.cookies.remove(url, cookie.name)
+      }
+    } catch (error) {
+      // TODO: ERROR LOG
+      console.error(`Clear cookie error: ${error}`)
+    }
+  }
+
+  public static async getUserInfo() {
+    if (!AuthService.accessToken)
+      throw new Error('No access token for user information')
+
+    const res = await axios({
+      method: 'GET',
+      url: 'https://id.twitch.tv/oauth2/userinfo',
+      headers: { Authorization: `Bearer ${AuthService.accessToken}` },
+      adapter: require('axios/lib/adapters/http')
+    })
+
+    AuthService.userID = res.data.sub
+
+    AuthService.userName = res.data.preferred_username
+
+    await AuthService.setKeyChain(AuthService.userID, AuthService.userIDService)
+  }
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -16,8 +506,6 @@ app.on('ready', async () => {
     await AuthService.getUserInfo()
 
     MainProcess.init()
-
-    // TODO: Logout handler
   } catch (error) {
     AuthProcess.createAuthWindow()
   }

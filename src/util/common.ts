@@ -32,3 +32,29 @@ export async function getExportJSONPath(exportFileName: string, title: string) {
 
   return exportPath || ''
 }
+
+export function timeString() {
+  const timeNow = new Date()
+
+  const year = timeNow.getFullYear()
+
+  const month = timeNow.getMonth() + 1
+
+  const day = timeNow.getDate()
+
+  const hour = timeNow.getHours()
+
+  const minute = timeNow.getMinutes()
+
+  const second = timeNow.getMinutes()
+
+  const pre = [year, month, day]
+    .map((i) => String(i).padStart(2, '0'))
+    .join('')
+
+  const post = [hour, minute, second]
+    .map((i) => String(i).padStart(2, '0'))
+    .join('')
+    
+  return { pre, post }
+}

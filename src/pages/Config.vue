@@ -387,15 +387,18 @@
 
 <script setup lang="ts">
 import fs from 'fs'
-import Notify from '../util/notify'
 import ModelSystem from '../util/model'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
 import {
   getDirPath,
+  timeString,
   getExportJSONPath,
   getImportJSONPath
 } from '../util/common'
+import { useNotification } from '../store/notification'
+
+const notify = useNotification()
 
 const configuration = ref<Config>()
 
@@ -425,11 +428,11 @@ const saveConfig = async () => {
   try {
     ModelSystem.setConfig(configuration.value)
 
-    Notify.success('configuration saved successfully')
+    notify.success('configuration saved successfully')
   } catch (error) {
     console.error(error)
 
-    Notify.warn('fail to save configuration')
+    notify.warn('fail to save configuration')
   }
 }
 
@@ -448,25 +451,27 @@ const importConfig = async () => {
 
     ModelSystem.setConfig(configuration.value)
 
-    Notify.success('configuration imported successfully')
+    notify.success('configuration imported successfully')
   } catch (error) {
     console.error(error)
 
-    Notify.warn('fail to import configuration')
+    notify.warn('fail to import configuration')
   }
 }
 
 const exportConfig = async () => {
   try {
-    const jsonPath = await getExportJSONPath('config', 'Export Config')
+    const { pre, post } = timeString()
+    
+    const jsonPath = await getExportJSONPath(`config_${pre}_${post}`, 'Export Config')
 
     if (!jsonPath) return
 
-    Notify.success('configuration exported successfully')
+    notify.success('configuration exported successfully')
   } catch (error) {
     console.error(error)
 
-    Notify.warn('fail to export configuration')
+    notify.warn('fail to export configuration')
   }
 }
 
@@ -476,11 +481,11 @@ const resumeConfig = async () => {
 
     ModelSystem.setConfig(configuration.value)
 
-    Notify.success('resume default configuration successfully')
+    notify.success('resume default configuration successfully')
   } catch (error) {
     console.error(error)
 
-    Notify.warn('fail to resume default configuration')
+    notify.warn('fail to resume default configuration')
   }
 }
 

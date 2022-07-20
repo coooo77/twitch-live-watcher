@@ -24,9 +24,11 @@ declare module '@vue/runtime-core' {
     Explanation: typeof import('./src/components/Explanation.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     InputRow: typeof import('./src/components/InputRow.vue')['default']
+    InputSearch: typeof import('./src/components/InputSearch.vue')['default']
     Layout: typeof import('./src/components/Layout.vue')['default']
     Menu: typeof import('./src/components/Menu.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
+    Notification: typeof import('./src/components/Notification.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
