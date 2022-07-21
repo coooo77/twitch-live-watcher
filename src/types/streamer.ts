@@ -57,5 +57,5 @@ export interface Streamers {
 
 export interface FollowList {
   streamers: Streamers
-  onlineList: Streamers
+  onlineList: Streamer['user_id'][]
 }

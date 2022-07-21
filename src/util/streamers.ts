@@ -1,6 +1,13 @@
-import { RecordSetting, Streamer } from "src/types/streamer"
+import { FollowList, RecordSetting, Streamer } from "src/types/streamer"
 
 export default class StreamerSystem {
+  static filename = 'followList'
+
+  static defaultFollowList: FollowList = {
+    streamers: {},
+    onlineList: []
+  }
+
   static defaultRecordSetting: RecordSetting = {
     enableRecord: true,
     enableNotify: true,
@@ -26,5 +33,10 @@ export default class StreamerSystem {
       isOnline: false,
       isRecording: false
     }
+  }
+
+  static defaultStreamer: Streamer = {
+    ...StreamerSystem.defaultStreamerSetting,
+    recordSetting: StreamerSystem.defaultRecordSetting
   }
 }

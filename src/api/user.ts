@@ -1,5 +1,5 @@
 import api from '../util/axios'
-import { IPaginationType, StringTypeNumber, TwitchResponse } from '../types/commonTypes'
+import { DataType, IPaginationType } from '../types/commonTypes'
 
 export interface FollowedStream {
   id: string
@@ -29,3 +29,28 @@ export async function getFollowedStreams(params: {
     params
   })
 }
+
+export interface TwitchGetUsersParams {
+  id?: string | string[]
+  login?: string | string[]
+}
+
+export interface GetUsersResponse {
+  id: string
+  login: string
+  display_name: string
+  profile_image_url: string
+  offline_image_url: string
+}
+
+/** @see https://dev.twitch.tv/docs/api/reference#get-users */
+export async function getUsers(
+  params: TwitchGetUsersParams = {}
+): Promise<DataType<GetUsersResponse[]>> {
+  return api.get('https://api.twitch.tv/helix/users', {
+    headers: { 'Client-Id': import.meta.env.VITE_CLIENT_ID },
+    params
+  })
+}
+
+
