@@ -8,13 +8,15 @@ const route = useRoute()
 <template>
   <Layout>
     <Menu />
-    <div class="pageView grow flex flex-col">
+    <div class="pageView grow grid grid-rows-[min-content,1fr]">
       <div class="pageTitle select-none border-b-[9px] text-[72px] font-bold text-themeColor4 leading-[90px] mb-4">
         {{ route.meta.title }}
       </div>
       <RouterView />
     </div>
   </Layout>
+
+  <Notification />
 </template>
 
 <style>

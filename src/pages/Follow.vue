@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pageView flex flex-col grow"
+    class="pageView grid grid-rows-[min-content,1fr]"
     v-loading="loading"
     element-loading-background="transparent"
     element-loading-text="Loading..."

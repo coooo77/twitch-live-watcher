@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pageView flex flex-col grow"
+    class="pageView grid grid-rows-[min-content,1fr]"
     v-loading="loading"
     element-loading-background="transparent"
     element-loading-text="Loading..."
@@ -35,7 +35,7 @@
       </el-popconfirm>
     </div>
 
-    <div class="configs relative grow" v-if="configuration">
+    <div class="configs relative" v-if="configuration">
       <div class="responsive absolute inset-0">
         <el-scrollbar>
           <el-collapse v-model="activeNames" accordion>
