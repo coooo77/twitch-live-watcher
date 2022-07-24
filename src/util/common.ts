@@ -1,3 +1,4 @@
+import cp from 'child_process'
 import { ipcRenderer } from 'electron'
 
 export async function getDirPath() {
@@ -48,13 +49,34 @@ export function timeString() {
 
   const second = timeNow.getMinutes()
 
-  const pre = [year, month, day]
-    .map((i) => String(i).padStart(2, '0'))
-    .join('')
+  const pre = [year, month, day].map((i) => String(i).padStart(2, '0')).join('')
 
   const post = [hour, minute, second]
     .map((i) => String(i).padStart(2, '0'))
     .join('')
-    
+
   return { pre, post }
+}
+
+export function wait(seconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000))
+}
+
+export function isProcessRunning(pid: number) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function killProcess(pid: number, signal: string | number = 'SIGTERM') {
+  if (!isProcessRunning(pid)) return
+
+  if (process.platform == 'win32') {
+    cp.exec(`taskkill /PID ${pid} /T /F`)
+  } else {
+    process.kill(-pid, signal)
+  }
 }

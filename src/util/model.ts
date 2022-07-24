@@ -2,9 +2,11 @@ import { join } from 'path'
 import FilesSystem from './file'
 import ConfigSystem from './config'
 import AuthService from './authService'
+import DownloadSystem from './download'
 import StreamerSystem from './streamers'
-import { Config } from 'src/types/config'
-import { FollowList } from 'src/types/streamer'
+import { Config } from '../types/config'
+import { FollowList } from '../types/streamer'
+import { DownloadList } from '../types/download'
 
 export default class ModelSystem {
   private static async modelPath() {
@@ -56,5 +58,26 @@ export default class ModelSystem {
     )
 
     FilesSystem.saveFile(followListPath, followList)
+  }
+
+  static async getDownloadedList() {
+    const downloadPath = await ModelSystem.getTargetFilePath(
+      DownloadSystem.filename
+    )
+
+    return FilesSystem.getOrCreateFile(
+      downloadPath,
+      DownloadSystem.defaultDownloadList
+    )
+  }
+
+  static async setDownloadList(downloadList?: DownloadList) {
+    if (!downloadList) return
+
+    const downloadPath = await ModelSystem.getTargetFilePath(
+      DownloadSystem.filename
+    )
+
+    FilesSystem.saveFile(downloadPath, downloadList)
   }
 }

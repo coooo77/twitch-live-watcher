@@ -8,6 +8,7 @@ export {}
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     CardFollow: typeof import('./src/components/CardFollow.vue')['default']
+    CardLive: typeof import('./src/components/CardLive.vue')['default']
     DialogStreamer: typeof import('./src/components/DialogStreamer.vue')['default']
     DialogWrapper: typeof import('./src/components/DialogWrapper.vue')['default']
     DividerTitle: typeof import('./src/components/DividerTitle.vue')['default']
@@ -32,6 +33,7 @@ declare module '@vue/runtime-core' {
     Layout: typeof import('./src/components/Layout.vue')['default']
     Menu: typeof import('./src/components/Menu.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
+    NoData: typeof import('./src/components/NoData.vue')['default']
     Notification: typeof import('./src/components/Notification.vue')['default']
     Observer: typeof import('./src/components/Observer.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

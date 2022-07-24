@@ -86,15 +86,11 @@ const props = defineProps<{
   isUpdatingStreamer: boolean
 }>()
 
-const { profileImg, displayName, recordSetting } = toRefs(props.streamer)
-
-const { enableRecord, enableNotify, vodEnableRecordVOD } = toRefs(
-  recordSetting.value
-)
+const { profileImg, displayName } = toRefs(props.streamer)
 
 const _enableRecord = computed({
   get() {
-    return enableRecord.value
+    return props.streamer.recordSetting.enableRecord
   },
   set(value) {
     emit('updateStreamer', 'enableRecord')
@@ -103,7 +99,7 @@ const _enableRecord = computed({
 
 const _enableNotify = computed({
   get() {
-    return enableNotify.value
+    return props.streamer.recordSetting.enableNotify
   },
   set(value) {
     emit('updateStreamer', 'enableNotify')
@@ -112,7 +108,7 @@ const _enableNotify = computed({
 
 const _vodEnableRecordVOD = computed({
   get() {
-    return vodEnableRecordVOD.value
+    return props.streamer.recordSetting.vodEnableRecordVOD
   },
   set(value) {
     emit('updateStreamer', 'vodEnableRecordVOD')

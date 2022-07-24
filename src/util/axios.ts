@@ -7,7 +7,10 @@ interface RequestConfig extends AxiosRequestConfig {
 }
 
 const api = axios.create({
-  timeout: 5000
+  timeout: 5000,
+  headers: {
+    'Client-Id': import.meta.env.VITE_CLIENT_ID
+  }
 })
 
 api.interceptors.request.use(

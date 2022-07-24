@@ -1,4 +1,4 @@
-import { DateStringType, StringTypeNumber } from "./commonTypes";
+import { DateStringType, StringTypeNumber } from './commonTypes'
 
 // prettier-ignore
 export type VODRecordMode = 
@@ -36,7 +36,7 @@ export interface RecordSetting {
 export interface UserStatus {
   isOnline: boolean
   isRecording: boolean
-  lastVodUrl?: string
+  onlineVodID?: string
   streamStartedAt?: string
 }
 
@@ -55,7 +55,11 @@ export interface Streamers {
   [key: Streamer['user_id']]: Streamer
 }
 
+export interface OnlineList {
+  [key: Streamer['user_id']]: Streamer['user_id']
+}
+
 export interface FollowList {
   streamers: Streamers
-  onlineList: Streamer['user_id'][]
+  onlineList: OnlineList
 }

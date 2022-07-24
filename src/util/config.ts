@@ -1,4 +1,5 @@
 import os from 'os'
+import path from 'path'
 import { RecordSetting } from 'src/types/streamer'
 import { Config, GeneralSetting, VodSetting } from 'src/types/config'
 
@@ -7,7 +8,8 @@ export default class ConfigSystem {
 
   static defaultGeneralSetting: GeneralSetting = {
     checkStreamInterval: 30,
-    dirToSaveRecord: os.homedir(),
+    // TODO: get download folder
+    dirToSaveRecord: path.parse(os.homedir()).root,
     numOfDownloadLimit: 0,
     showDownloadCmd: true
   }
@@ -44,10 +46,12 @@ export default class ConfigSystem {
     vodMode: 'queue',
     vodCountDownInMinutes: 30,
     vodTimeZone: new Date(2022, 1, 10, 3, 0).toISOString(),
-    vodFileNameTemplate: '{channel}_TwitchVOD_{date}_{duration}',
+    vodFileNameTemplate:
+      '{streamer}_TwitchVOD_id_{id}_{year}{month}{day}_{hr}{min}{sec}_{duration}',
     checkStreamContentTypeEnable: true,
     checkStreamContentTypeTargetGameNames: 'Art;Just Chatting;',
-    fileNameTemplate: '{channel}_TwitchLive_{date}'
+    fileNameTemplate:
+      '{streamer}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
   }
 
   static explanationRecordSetting = {
@@ -103,7 +107,7 @@ export default class ConfigSystem {
   static wildcardExplanation = [
     {
       wildcard: '{id}',
-      description: 'Twitch Video ID (VOD only)',
+      description: 'Twitch Video ID',
       example: '335921245'
     },
     {

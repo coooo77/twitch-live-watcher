@@ -5,7 +5,7 @@ export default class StreamerSystem {
 
   static defaultFollowList: FollowList = {
     streamers: {},
-    onlineList: []
+    onlineList: {}
   }
 
   static defaultRecordSetting: RecordSetting = {
