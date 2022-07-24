@@ -9,7 +9,7 @@
       <el-button
         color="#576F72"
         plain
-        :disable="!isConfigChanged"
+        :disabled="!isConfigChanged"
         @click="saveConfig"
       >
         <strong>Save</strong>
@@ -461,14 +461,16 @@ const resumeConfig = async () => {
 }
 
 watch(
-  isConfigChanged,
-  (oldValue, newValue) => {
+  configuration,
+  (newValue, oldValue) => {
     if (oldValue === undefined) return
 
     isConfigChanged.value = true
   },
-  { deep: false }
+  { deep: true }
 )
+
+// TODO: before leave check
 
 onBeforeMount(async () => {
   try {

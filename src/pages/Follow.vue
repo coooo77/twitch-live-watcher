@@ -25,7 +25,7 @@
 
     <div class="followList relative grow">
       <div ref="followListEl" class="layout absolute inset-0 overflow-auto">
-        <el-scrollbar>
+        <el-scrollbar v-if="followCardsDisplayed.length">
           <div class="cards grid gap-3 p-4">
             <CardFollow
               v-for="streamer of followCardsDisplayed"
@@ -44,6 +44,8 @@
             @intersect="loadCards"
           />
         </el-scrollbar>
+
+        <NoData v-else />
       </div>
     </div>
   </div>
@@ -61,6 +63,7 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import ModelSystem from '../util/model'
 import StreamerSystem from '../util/streamers'
 import useFollowListStore from '../store/followList'
@@ -85,7 +88,7 @@ const followListEl = ref<HTMLElement>()
 
 const isUpdatingStreamer = ref(false)
 
-const followList = toRef(followStore, 'followList')
+const { followList } = storeToRefs(followStore)
 
 const steps = 9
 
@@ -142,15 +145,13 @@ const editStreamer = async (streamer: Streamer) => {
 const deleteStreamer = async (user_id: string) => {
   const streamerExist = followList.value.streamers[user_id]
 
-  const onlineExist = followList.value.onlineList.findIndex(
-    (id) => id === user_id
-  )
+  const onlineExist = followList.value.onlineList[user_id] !== undefined
 
   if (!streamerExist && !onlineExist) return
 
   if (streamerExist) delete followList.value.streamers[user_id]
 
-  if (onlineExist !== -1) followList.value.onlineList.splice(onlineExist, 1)
+  if (onlineExist) delete followList.value.onlineList[user_id]
 
   // TODO: stop record?
   await followStore.setFollowList(followList.value)
