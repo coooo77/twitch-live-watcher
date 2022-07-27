@@ -386,7 +386,6 @@
 </template>
 
 <script setup lang="ts">
-import fs from 'fs'
 import ModelSystem from '../util/model'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'

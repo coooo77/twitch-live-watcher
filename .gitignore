@@ -30,3 +30,4 @@ yarn.lock
 extensions
 .env
 model
+log

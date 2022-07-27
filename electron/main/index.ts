@@ -11,6 +11,7 @@ import {
 } from 'electron'
 import keytar from 'keytar'
 import { join } from 'path'
+import fetch from 'node-fetch'
 import * as dotenv from 'dotenv'
 import { release, homedir, userInfo } from 'os'
 import axios, { AxiosRequestConfig } from 'axios'
@@ -21,6 +22,8 @@ const envPath = app.isPackaged
   : join(__dirname, '..', '..', '..', '.env')
 
 dotenv.config({ path: envPath })
+
+const modelPath = join(__dirname, '../../../model')
 
 class MainProcess {
   static ROOT_PATH = {
@@ -97,6 +100,8 @@ class MainProcess {
 
     if (app.isPackaged) {
       MainProcess.electronWindow.loadFile(MainProcess.indexHtml)
+
+      // MainProcess.electronWindow.webContents.openDevTools()
     } else {
       MainProcess.electronWindow.loadURL(MainProcess.url)
 
@@ -116,6 +121,8 @@ class MainProcess {
       if (url.startsWith('https:')) shell.openExternal(url)
       return { action: 'deny' }
     })
+
+    MainProcess.listenElectronWindow(MainProcess.electronWindow)
   }
 
   static listenApp() {
@@ -142,11 +149,6 @@ class MainProcess {
       } else {
         MainProcess.createWindow()
       }
-    })
-
-    // Quit when all windows are closed.
-    app.on('window-all-closed', () => {
-      app.quit()
     })
   }
 
@@ -216,6 +218,33 @@ class MainProcess {
     })
   }
 
+  static listenElectronWindow(browserWindow: BrowserWindow) {
+    // Test actively push message to the Electron-Renderer
+    browserWindow.webContents.on('did-finish-load', () => {
+      const isModelFolderExist = existsSync(modelPath)
+
+      const msg = `is Model Folder Exist ${isModelFolderExist} `
+
+      browserWindow.webContents.send(
+        'main-process-message',
+        msg + new Date().toLocaleString()
+      )
+    })
+
+    browserWindow.on('close', (event) => {
+      // TODO: clear online list、confirm leave before close
+      const choice = dialog.showMessageBoxSync(browserWindow, {
+        type: 'question',
+        buttons: ['Yes', 'No'],
+        title: 'Confirm',
+        message: 'Are you sure you want to quit?',
+        defaultId: 0
+      })
+
+      if (choice === 1) event.preventDefault()
+    })
+  }
+
   static destroyAppWin() {
     if (!MainProcess.electronWindow) return
 
@@ -249,9 +278,9 @@ class AuthProcess {
       }
     })
 
-    const v = { url: AuthService.authenticationURL() }
+    // const v = { url: AuthService.authenticationURL() }
 
-    writeFileSync(join(homedir(), 'test.json'), JSON.stringify(v), 'utf8')
+    // writeFileSync(join(homedir(), 'test.json'), JSON.stringify(v), 'utf8')
 
     AuthProcess.authWindow.loadURL(AuthService.authenticationURL())
 
@@ -347,22 +376,24 @@ class AuthService {
     if (!refreshToken) throw new Error('No available refresh token.')
 
     try {
-      const refreshOptions: AxiosRequestConfig = {
-        method: 'POST',
-        url: `${process.env['VITE_BASE_URL']}/token`,
-        headers: { 'content-type': 'application/json' },
-        data: {
+      const url = `${process.env['VITE_BASE_URL']}/token`
+
+      const options = {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
           client_id: process.env['VITE_CLIENT_ID'],
           client_secret: process.env['VITE_CLIENT_SECRET']
-        },
-        adapter: require('axios/lib/adapters/http')
+        })
       }
 
-      const response = await axios(refreshOptions)
+      const response = await fetch(url, options)
 
-      const { access_token, refresh_token } = response.data
+      const data = await response.json()
+
+      const { access_token, refresh_token } = data as any
 
       await Promise.allSettled([
         AuthService.setKeyChain(access_token, AuthService.accessService),
@@ -385,26 +416,26 @@ class AuthService {
       throw new Error(`Invalid state in callbackURL`)
     }
 
-    const exchangeOptions = {
-      grant_type: 'authorization_code',
-      code: params.searchParams.get('code'),
-      client_id: process.env['VITE_CLIENT_ID'],
-      redirect_uri: process.env['VITE_REDIRECT_URL'],
-      client_secret: process.env['VITE_CLIENT_SECRET']
-    }
-
-    const options: AxiosRequestConfig = {
-      method: 'POST',
-      data: JSON.stringify(exchangeOptions),
-      url: `${process.env['VITE_BASE_URL']}/token`,
-      headers: { 'content-type': 'application/json' },
-      adapter: require('axios/lib/adapters/http')
-    }
-
     try {
-      const response = await axios(options)
+      const url = `${process.env['VITE_BASE_URL']}/token`
 
-      const { access_token, refresh_token } = response.data
+      const options = {
+        method: 'post',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          grant_type: 'authorization_code',
+          code: params.searchParams.get('code'),
+          client_id: process.env['VITE_CLIENT_ID'],
+          redirect_uri: process.env['VITE_REDIRECT_URL'],
+          client_secret: process.env['VITE_CLIENT_SECRET']
+        })
+      }
+
+      const response = await fetch(url, options)
+
+      const data = await response.json()
+
+      const { access_token, refresh_token } = data as any
 
       await Promise.allSettled([
         AuthService.setKeyChain(access_token, AuthService.accessService),
@@ -481,16 +512,20 @@ class AuthService {
     if (!AuthService.accessToken)
       throw new Error('No access token for user information')
 
-    const res = await axios({
-      method: 'GET',
-      url: 'https://id.twitch.tv/oauth2/userinfo',
-      headers: { Authorization: `Bearer ${AuthService.accessToken}` },
-      adapter: require('axios/lib/adapters/http')
-    })
+    const url = 'https://id.twitch.tv/oauth2/userinfo'
 
-    AuthService.userID = res.data.sub
+    const options = {
+      method: 'get',
+      headers: { Authorization: `Bearer ${AuthService.accessToken}` }
+    }
 
-    AuthService.userName = res.data.preferred_username
+    const response = await fetch(url, options)
+
+    const data = await response.json() as any
+
+    AuthService.userID = data.sub
+
+    AuthService.userName = data.preferred_username
 
     await AuthService.setKeyChain(AuthService.userID, AuthService.userIDService)
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // import './samples/node-api'
+import { storeToRefs } from 'pinia'
 import useFollowList from './store/followList'
 import useDownloadList from './store/download'
 import Notification from './components/Notification.vue'
@@ -11,16 +12,13 @@ const followList = useFollowList()
 
 const downloadList = useDownloadList()
 
-followList.$subscribe((mutation, state) => {
-  if (
-    !Array.isArray(mutation.events) &&
-    mutation.events.key === 'isWatchOnline'
-  ) {
-    if (mutation.events.newValue) {
-      followList.setCheckOnlineTimer()
-    } else {
-      followList.clearTimer()
-    }
+const { isWatchOnline } = storeToRefs(followList)
+
+watch(isWatchOnline, (newVal, oldVal) => {
+  if (newVal) {
+    followList.setCheckOnlineTimer()
+  } else {
+    followList.clearTimer()
   }
 })
 
