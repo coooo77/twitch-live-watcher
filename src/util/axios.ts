@@ -40,7 +40,7 @@ api.interceptors.response.use(
 
       return api(originalRequest)
     } else {
-      FileSystem.errorHandler(error)
+      if (error.response?.status !== 401) FileSystem.errorHandler(error)
     }
 
     return Promise.reject(error)

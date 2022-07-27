@@ -197,7 +197,8 @@ export default defineStore('followList', {
 
         const { isRecording } = streamer.status
 
-        const inValidGameName = checkStreamContentTypeEnable && !isValidTag
+        const inValidGameName =
+          checkStreamContentTypeEnable && stream.game_name && !isValidTag
 
         if (isRecording || inValidGameName || !enableRecord) continue
 
