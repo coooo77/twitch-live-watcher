@@ -164,7 +164,7 @@ export default class Download {
 
     const downloadList = await download.getDownloadList()
 
-    for(const item of Object.values(downloadList.liveStreams)) {
+    for (const item of Object.values(downloadList.liveStreams)) {
       if (item.pid !== undefined) killProcess(item.pid)
     }
 
@@ -176,7 +176,7 @@ export default class Download {
   static async abortLiveRecord(stream: FollowedStream) {
     const download = useDownloadListStore()
     const followListStore = useFollowListStore()
-    
+
     const [followList, downloadList] = await Promise.all([
       followListStore.getFollowList(),
       download.getDownloadList()
@@ -237,11 +237,14 @@ export default class Download {
       validDownloadTime: Download.getValidTime(streamer),
       mod: streamer.recordSetting.vodMode,
       retryTimes: 0,
-      duration: video.duration,
       url: video.url,
-      filename: Download.getVodFilename(streamer.recordSetting.vodFileNameTemplate, video),
-      user_login: streamer.user_login,
-      status: 'Queue'
+      filename: Download.getVodFilename(
+        streamer.recordSetting.vodFileNameTemplate,
+        video
+      ),
+      user_login: video.user_login,
+      status: 'Queue',
+      thumbnail_url: video.thumbnail_url
     }))
   }
 

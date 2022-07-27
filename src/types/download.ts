@@ -13,12 +13,13 @@ export interface DownloadItem {
   validDownloadTime: DateStringType
   mod: VODRecordMode
   retryTimes: number
-  duration: string
   url: string
   filename: string
   user_login: string
   note?: string
+  dirToSaveRecord?: string
   status: DownloadStatus
+  thumbnail_url: string
 }
 
 export interface VodDownload {

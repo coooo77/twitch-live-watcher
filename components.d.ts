@@ -9,7 +9,9 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     CardFollow: typeof import('./src/components/CardFollow.vue')['default']
     CardLive: typeof import('./src/components/CardLive.vue')['default']
+    CardSearch: typeof import('./src/components/CardSearch.vue')['default']
     DialogStreamer: typeof import('./src/components/DialogStreamer.vue')['default']
+    DialogVideo: typeof import('./src/components/DialogVideo.vue')['default']
     DialogWrapper: typeof import('./src/components/DialogWrapper.vue')['default']
     DividerTitle: typeof import('./src/components/DividerTitle.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']

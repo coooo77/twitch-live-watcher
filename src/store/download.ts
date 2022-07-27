@@ -7,7 +7,7 @@ import { DownloadList } from '../types/download'
 export default defineStore('download', {
   state: () => {
     return { downloadList: DownloadSystem.defaultDownloadList }
-  },  
+  },
   actions: {
     async getDownloadList() {
       try {
@@ -20,11 +20,13 @@ export default defineStore('download', {
     },
     async setDownloadList(list?: DownloadList) {
       try {
-        if (!list) return false
-        
-        await ModelSystem.setDownloadList(list)
+        if (!list) {
+          await ModelSystem.setDownloadList(this.downloadList)
+        } else {
+          await ModelSystem.setDownloadList(list)
 
-        this.downloadList = list
+          this.downloadList = list
+        }
 
         return true
       } catch (error) {
