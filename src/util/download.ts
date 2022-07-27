@@ -1,11 +1,11 @@
 import path from 'path'
 import cp from 'child_process'
-import ModelSystem from './model'
 import { killProcess } from './common'
+import useConfig from '../store/config'
+import useFollow from '../store/follow'
 import { Config } from 'src/types/config'
+import useDownload from '../store/download'
 import { Streamer } from '../types/streamer'
-import useFollowListStore from '../store/followList'
-import useDownloadListStore from '../store/download'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
@@ -23,16 +23,13 @@ export default class Download {
   }
 
   static async recordLiveStream(stream: FollowedStream) {
-    const followListStore = useFollowListStore()
+    const follow = useFollow()
 
-    const [config, followList] = await Promise.all([
-      ModelSystem.getConfig(),
-      ModelSystem.getFollowList()
-    ])
+    const config = useConfig()
 
-    const streamer = followList.streamers[stream.user_id]
+    const streamer = follow.followList.streamers[stream.user_id]
 
-    const cmd = Download.getCmd(streamer, stream, config)
+    const cmd = Download.getCmd(streamer, stream, config.userConfig)
 
     let task: null | cp.ChildProcess = cp.exec(cmd)
 
@@ -41,8 +38,6 @@ export default class Download {
         Download.addDownloadRecord(stream, task?.pid),
         Download.updateStreamerStatus(stream, true)
       ])
-
-      await followListStore.getFollowList()
     })
 
     task.on('close', async (code: number) => {
@@ -50,8 +45,6 @@ export default class Download {
         Download.removeDownloadRecord(stream),
         Download.updateStreamerStatus(stream, false)
       ])
-
-      await followListStore.getFollowList()
 
       task?.off('spawn', () => {})
 
@@ -127,40 +120,40 @@ export default class Download {
   }
 
   static async addDownloadRecord(stream: FollowedStream, pid?: number) {
-    const downloadList = await ModelSystem.getDownloadedList()
+    const download = useDownload()
 
-    downloadList.liveStreams[stream.id] = {
+    download.downloadList.liveStreams[stream.id] = {
       pid,
       user_id: stream.user_id,
       user_login: stream.user_login,
       startAt: new Date().toJSON()
     }
 
-    await ModelSystem.setDownloadList(downloadList)
+    await download.setDownloadList()
   }
 
   static async removeDownloadRecord(stream: FollowedStream) {
-    const downloadList = await ModelSystem.getDownloadedList()
+    const download = useDownload()
 
-    if (downloadList.liveStreams[stream.id] === undefined) return
+    if (download.downloadList.liveStreams[stream.id] === undefined) return
 
-    delete downloadList.liveStreams[stream.id]
+    delete download.downloadList.liveStreams[stream.id]
 
-    await ModelSystem.setDownloadList(downloadList)
+    await download.setDownloadList()
   }
 
   static async updateStreamerStatus(stream: FollowedStream, status: boolean) {
-    const followList = await ModelSystem.getFollowList()
+    const follow = useFollow()
 
-    if (followList.streamers[stream.user_id] === undefined) return
+    if (follow.followList.streamers[stream.user_id] === undefined) return
 
-    followList.streamers[stream.user_id].status.isRecording = status
+    follow.followList.streamers[stream.user_id].status.isRecording = status
 
-    await ModelSystem.setFollowList(followList)
+    await follow.setFollowList()
   }
 
   static async abortAllDownloads() {
-    const download = useDownloadListStore()
+    const download = useDownload()
 
     const downloadList = await download.getDownloadList()
 
@@ -174,34 +167,27 @@ export default class Download {
   }
 
   static async abortLiveRecord(stream: FollowedStream) {
-    const download = useDownloadListStore()
-    const followListStore = useFollowListStore()
+    const follow = useFollow()
 
-    const [followList, downloadList] = await Promise.all([
-      followListStore.getFollowList(),
-      download.getDownloadList()
-    ])
+    const download = useDownload()
 
-    if (followList.streamers[stream.user_id]) {
-      followList.streamers[stream.user_id].status.isRecording = false
+    if (follow.followList.streamers[stream.user_id]) {
+      follow.followList.streamers[stream.user_id].status.isRecording = false
     }
 
-    if (downloadList.liveStreams[stream.id]) {
-      const { pid } = downloadList.liveStreams[stream.id]
+    if (download.downloadList.liveStreams[stream.id]) {
+      const { pid } = download.downloadList.liveStreams[stream.id]
 
       if (pid !== undefined) killProcess(pid)
 
-      delete downloadList.liveStreams[stream.id]
+      delete download.downloadList.liveStreams[stream.id]
     }
 
-    await Promise.all([
-      followListStore.setFollowList(followList),
-      download.setDownloadList(downloadList)
-    ])
+    await Promise.all([follow.setFollowList(), download.setDownloadList()])
   }
 
   static async updateVodList(user_id: string) {
-    const follow = useFollowListStore()
+    const follow = useFollow()
 
     const streamer = follow.followList.streamers[user_id]
 
@@ -213,7 +199,7 @@ export default class Download {
 
     const downloadItems = Download.vodToDownloadItem(videos, streamer)
 
-    const download = useDownloadListStore()
+    const download = useDownload()
 
     const list = download.downloadList
 

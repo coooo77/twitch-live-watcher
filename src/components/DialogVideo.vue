@@ -70,9 +70,9 @@
 </template>
 
 <script setup lang="ts">
+import useDownload from '../store/download'
 import { getDirPath } from '../util/common'
 import { DownloadItem } from '../types/download';
-import useDownloadListStore from '../store/download'
 import { useNotification } from '../store/notification'
 
 const props = defineProps<{
@@ -85,7 +85,7 @@ const isProcessing = ref(false)
 
 const notify = useNotification()
 
-const download = useDownloadListStore()
+const download = useDownload()
 
 const { isShowDialogContent } = toRefs(props)
 

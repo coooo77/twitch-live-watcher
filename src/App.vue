@@ -1,30 +1,35 @@
 <script setup lang="ts">
 // import './samples/node-api'
 import { storeToRefs } from 'pinia'
-import useFollowList from './store/followList'
-import useDownloadList from './store/download'
+import useFollow from './store/follow'
+import useConfig from './store/config'
+import useDownload from './store/download'
 import Notification from './components/Notification.vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+
 const route = useRoute()
 
-const followList = useFollowList()
+const config = useConfig()
 
-const downloadList = useDownloadList()
+const follow = useFollow()
 
-const { isWatchOnline } = storeToRefs(followList)
+const downloadList = useDownload()
+
+const { isWatchOnline } = storeToRefs(follow)
 
 watch(isWatchOnline, (newVal, oldVal) => {
   if (newVal) {
-    followList.setCheckOnlineTimer()
+    follow.setCheckOnlineTimer()
   } else {
-    followList.clearTimer()
+    follow.clearTimer()
   }
 })
 
 onMounted(async () => {
   await Promise.all([
-    followList.getFollowList(),
+    config.getConfig(),
+    follow.getFollowList(),
     downloadList.getDownloadList()
   ])
 })

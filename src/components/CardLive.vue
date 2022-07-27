@@ -72,7 +72,7 @@
 <script setup lang="ts">
 import { FollowedStream } from '../api/user'
 import DownloadSystem from '../util/download'
-import useFollowListStore from '../store/followList'
+import useFollow from '../store/follow'
 
 const props = defineProps<{
   stream: FollowedStream
@@ -85,7 +85,7 @@ defineEmits<{
   (eventName: 'startRecord', user_id: string): void
 }>()
 
-const followList = useFollowListStore()
+const followList = useFollow()
 
 const isProcessing = ref(false)
 
@@ -112,8 +112,6 @@ const abortRecord = async () => {
 
   try {
     await DownloadSystem.abortLiveRecord(props.stream)
-
-    await followList.getFollowList()
   } catch (error) {
     console.error(error)
   } finally {

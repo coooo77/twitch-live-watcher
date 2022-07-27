@@ -1,3 +1,4 @@
+import useConfig from './config'
 import { defineStore } from 'pinia'
 import FileSystem from '../util/file'
 import ModelSystem from '../util/model'
@@ -45,11 +46,13 @@ export default defineStore('followList', {
     },
     async setFollowList(followList?: FollowList) {
       try {
-        if (!followList) return false
+        if (!followList) {
+          await ModelSystem.setFollowList(this.followList)
+        } else {
+          await ModelSystem.setFollowList(followList)
 
-        await ModelSystem.setFollowList(followList)
-
-        this.followList = followList
+          this.followList = followList
+        }
 
         return true
       } catch (error) {
@@ -98,9 +101,9 @@ export default defineStore('followList', {
     async setCheckOnlineTimer() {
       if (!this.isWatchOnline) return
 
-      const config = await ModelSystem.getConfig()
+      const config = useConfig()
 
-      const { checkStreamInterval } = config.general
+      const { checkStreamInterval } = config.userConfig.general
 
       try {
         await this.updateOnlineList()

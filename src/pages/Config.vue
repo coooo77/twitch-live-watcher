@@ -35,7 +35,7 @@
       </el-popconfirm>
     </div>
 
-    <div class="configs relative" v-if="configuration">
+    <div class="configs relative" v-if="userConfig">
       <div class="responsive absolute inset-0">
         <el-scrollbar>
           <el-collapse v-model="activeNames" accordion>
@@ -48,7 +48,7 @@
                 <InputRow title="Enable Record">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.enableRecord"
+                    v-model="userConfig.record.enableRecord"
                   />
 
                   <template #popIcon>
@@ -59,7 +59,7 @@
                 <InputRow title="Enable Notify">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.enableNotify"
+                    v-model="userConfig.record.enableNotify"
                   />
 
                   <template #popIcon>
@@ -70,7 +70,7 @@
                 <InputRow title="Enable Record VOD">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.vodEnableRecordVOD"
+                    v-model="userConfig.record.vodEnableRecordVOD"
                   />
 
                   <template #popIcon>
@@ -81,7 +81,7 @@
                 <InputRow title="Is Stop Record Stream">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.vodIsStopRecordStream"
+                    v-model="userConfig.record.vodIsStopRecordStream"
                   />
 
                   <template #popIcon>
@@ -92,7 +92,7 @@
                 <InputRow title="Download If No Vod">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.vodGetStreamIfNoVod"
+                    v-model="userConfig.record.vodGetStreamIfNoVod"
                   />
 
                   <template #popIcon>
@@ -105,7 +105,7 @@
                     class="vodDownloadMode flex flex-nowrap items-center gap-2"
                   >
                     <el-select
-                      v-model="configuration.record.vodMode"
+                      v-model="userConfig.record.vodMode"
                       placeholder="Select"
                       size="small"
                     >
@@ -118,10 +118,10 @@
                     </el-select>
 
                     <template
-                      v-if="configuration.record.vodMode === 'countDown'"
+                      v-if="userConfig.record.vodMode === 'countDown'"
                     >
                       <el-input-number
-                        v-model="configuration.record.vodCountDownInMinutes"
+                        v-model="userConfig.record.vodCountDownInMinutes"
                         :min="0"
                         :max="1440"
                         size="small"
@@ -132,10 +132,10 @@
                     </template>
 
                     <template
-                      v-else-if="configuration.record.vodMode === 'timeZone'"
+                      v-else-if="userConfig.record.vodMode === 'timeZone'"
                     >
                       <el-time-picker
-                        v-model="configuration.record.vodTimeZone"
+                        v-model="userConfig.record.vodTimeZone"
                         placeholder="time zone"
                         size="small"
                         :clearable="false"
@@ -168,7 +168,7 @@
                 <InputRow title="VOD Filename Template">
                   <el-input
                     size="small"
-                    v-model="configuration.record.vodFileNameTemplate"
+                    v-model="userConfig.record.vodFileNameTemplate"
                     placeholder="Filename Template For VOD"
                   />
 
@@ -202,7 +202,7 @@
                 <InputRow title="Live Filename Template">
                   <el-input
                     size="small"
-                    v-model="configuration.record.fileNameTemplate"
+                    v-model="userConfig.record.fileNameTemplate"
                     placeholder="Filename Template For Live Record"
                   />
 
@@ -214,7 +214,7 @@
                 <InputRow title="Enable Tag Check">
                   <el-switch
                     size="small"
-                    v-model="configuration.record.checkStreamContentTypeEnable"
+                    v-model="userConfig.record.checkStreamContentTypeEnable"
                   />
 
                   <template #popIcon>
@@ -228,7 +228,7 @@
                   <el-input
                     size="small"
                     v-model="
-                      configuration.record.checkStreamContentTypeTargetGameNames
+                      userConfig.record.checkStreamContentTypeTargetGameNames
                     "
                     placeholder="write game tag here"
                   />
@@ -250,7 +250,7 @@
               <div class="configContent">
                 <InputRow title="Check Stream Interval">
                   <el-input-number
-                    v-model="configuration.general.checkStreamInterval"
+                    v-model="userConfig.general.checkStreamInterval"
                     :min="30"
                     size="small"
                     controls-position="right"
@@ -267,7 +267,7 @@
                     <el-input
                       disabled
                       size="small"
-                      v-model="configuration.general.dirToSaveRecord"
+                      v-model="userConfig.general.dirToSaveRecord"
                       placeholder="Filename Template For VOD"
                     />
 
@@ -288,7 +288,7 @@
 
                 <InputRow title="Number of Record limit">
                   <el-input-number
-                    v-model="configuration.general.numOfDownloadLimit"
+                    v-model="userConfig.general.numOfDownloadLimit"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -303,7 +303,7 @@
                 <InputRow title="Is Show Cmd">
                   <el-switch
                     size="small"
-                    v-model="configuration.general.showDownloadCmd"
+                    v-model="userConfig.general.showDownloadCmd"
                   />
 
                   <!-- prettier-ignore -->
@@ -322,7 +322,7 @@
               <div class="configContent">
                 <InputRow title="Download Retry Interval">
                   <el-input-number
-                    v-model="configuration.vod.reTryDownloadInterval"
+                    v-model="userConfig.vod.reTryDownloadInterval"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -336,7 +336,7 @@
 
                 <InputRow title="Max ReDownload Times">
                   <el-input-number
-                    v-model="configuration.vod.maxReDownloadTimes"
+                    v-model="userConfig.vod.maxReDownloadTimes"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -351,7 +351,7 @@
                 <InputRow title="Integrity Check">
                   <el-switch
                     size="small"
-                    v-model="configuration.vod.IntegrityCheck"
+                    v-model="userConfig.vod.IntegrityCheck"
                   />
 
                   <!-- prettier-ignore -->
@@ -361,11 +361,11 @@
                 </InputRow>
 
                 <InputRow
-                  v-show="configuration.vod.IntegrityCheck"
+                  v-show="userConfig.vod.IntegrityCheck"
                   title="Loss Duration Allowed"
                 >
                   <el-input-number
-                    v-model="configuration.vod.LossOfVODDurationAllowed"
+                    v-model="userConfig.vod.LossOfVODDurationAllowed"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -386,18 +386,21 @@
 </template>
 
 <script setup lang="ts">
-import ModelSystem from '../util/model'
+import { storeToRefs } from 'pinia'
+import useConfig from '../store/config'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
 import { getDirPath } from '../util/common'
 import { handleJsonFile } from '../composable/common'
 import { useNotification } from '../store/notification'
 
+const config = useConfig()
+
 const notify = useNotification()
 
 const { importJSON, exportJSON } = handleJsonFile()
 
-const configuration = ref<Config>()
+const { userConfig } = storeToRefs(config)
 
 const activeNames = ref(['defaultStreamerSetting'])
 
@@ -410,20 +413,20 @@ const { vod, record, general } = ConfigSystem.explanation
 const { recordModeList, vodModeExplanation, wildcardExplanation } = ConfigSystem
 
 const setRecordSaveDir = async () => {
-  if (!configuration.value) return
+  if (!userConfig.value) return
 
   const res = await getDirPath()
 
   if (!res) return
 
-  configuration.value.general.dirToSaveRecord = res
+  userConfig.value.general.dirToSaveRecord = res
 }
 
 const saveConfig = async () => {
-  if (!configuration.value) return
+  if (!userConfig.value) return
 
   try {
-    ModelSystem.setConfig(configuration.value)
+    await config.setConfig(userConfig.value)
 
     notify.success('configuration saved successfully')
   } catch (error) {
@@ -435,21 +438,19 @@ const saveConfig = async () => {
 
 const assignConfig = async (importData: Config) => {
   // TODO: data validation
-  configuration.value = importData
-
-  await ModelSystem.setConfig(configuration.value)
+  await config.setConfig(importData)
 }
 
 const importConfig = async () => await importJSON(assignConfig)
 
 const exportConfig = async () =>
-  await exportJSON(configuration.value, 'config', 'Export Config')
+  await exportJSON(userConfig.value, 'config', 'Export Config')
 
 const resumeConfig = async () => {
   try {
-    configuration.value = ConfigSystem.defaultSetting
+    userConfig.value = ConfigSystem.defaultSetting
 
-    ModelSystem.setConfig(configuration.value)
+    config.setConfig(userConfig.value)
 
     notify.success('resume default configuration successfully')
   } catch (error) {
@@ -460,7 +461,7 @@ const resumeConfig = async () => {
 }
 
 watch(
-  configuration,
+  userConfig,
   (newValue, oldValue) => {
     if (oldValue === undefined) return
 
@@ -472,15 +473,7 @@ watch(
 // TODO: before leave check
 
 onBeforeMount(async () => {
-  try {
-    const config = await ModelSystem.getConfig()
-
-    if (config) configuration.value = config
-  } catch (error) {
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
+  loading.value = false
 })
 </script>
 

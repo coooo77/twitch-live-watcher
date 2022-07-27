@@ -20,11 +20,13 @@ export default defineStore('config', {
     },
     async setConfig(config: Config) {
       try {
-        if (!config) return false
+        if (!config) {
+          await ModelSystem.setConfig(this.userConfig)
+        } else {
+          await ModelSystem.setConfig(config)
 
-        await ModelSystem.setConfig(config)
-
-        this.userConfig = config
+          this.userConfig = config
+        }
 
         return true
       } catch (error) {

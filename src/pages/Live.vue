@@ -6,7 +6,7 @@
     element-loading-text="Loading..."
   >
     <div class="controllers flex flex-nowrap gap-2 mb-2">
-      <template v-if="followList.isWatchOnline">
+      <template v-if="follow.isWatchOnline">
         <el-popconfirm
           title="Are you sure to STOP app?"
           @confirm="startOrStopApp(false)"
@@ -28,10 +28,10 @@
 
     <div class="onlineList relative">
       <div ref="onlineListEl" class="onlineListEl absolute inset-0">
-        <el-scrollbar v-if="followList.latestOnlineList.length">
+        <el-scrollbar v-if="follow.latestOnlineList.length">
           <div class="cards grid gap-3 p-4">
             <CardLive
-              v-for="stream of followList.latestOnlineList"
+              v-for="stream of follow.latestOnlineList"
               :key="stream.id"
               :stream="stream"
               :isRecording="isRecording(stream.user_id)"
@@ -52,12 +52,14 @@
 </template>
 
 <script setup lang="ts">
-import ModelSystem from '../util/model'
-import useFollowList from '../store/followList'
+import useConfig from '../store/config'
+import useFollow from '../store/follow'
 
 const loading = ref(true)
 
-const followList = useFollowList()
+const config = useConfig()
+
+const follow = useFollow()
 
 const onlineListEl = ref<HTMLElement>()
 
@@ -66,18 +68,16 @@ const hideObserver = ref(true)
 const hideAbortBtn = ref(false)
 
 const startOrStopApp = (value: boolean) => {
-  followList.isWatchOnline = value
+  follow.isWatchOnline = value
 }
 
 const isRecording = (user_id: string) => {
-  return followList.followList.streamers[user_id]?.status.isRecording || false
+  return follow.followList.streamers[user_id]?.status.isRecording || false
 }
 
 onMounted(async () => {
   try {
-    const config = await ModelSystem.getConfig()
-
-    hideAbortBtn.value = config.general.showDownloadCmd
+    hideAbortBtn.value = config.userConfig.general.showDownloadCmd
   } catch (error) {
     console.error(error)
   } finally {

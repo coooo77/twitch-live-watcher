@@ -1,10 +1,5 @@
 <template>
-  <div
-    class="pageView grid grid-rows-[min-content,1fr]"
-    v-loading="loading"
-    element-loading-background="transparent"
-    element-loading-text="Loading..."
-  >
+  <div class="pageView grid grid-rows-[min-content,1fr]">
     <div class="controllers flex flex-nowrap mb-2">
       <InputSearch
         class="mr-3 grow"
@@ -39,7 +34,7 @@
           </div>
 
           <Observer
-            :hideObserver="loading || hideObserver"
+            :hideObserver="hideObserver"
             :observeTarget="followListEl"
             @intersect="loadCards"
           />
@@ -64,9 +59,9 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import ModelSystem from '../util/model'
+import useFollow from '../store/follow'
+import useConfig from '../store/config'
 import StreamerSystem from '../util/streamers'
-import useFollowListStore from '../store/followList'
 import { handleJsonFile } from '../composable/common'
 import { useNotification } from '../store/notification'
 import { getUsers, GetUsersResponse } from '../api/user'
@@ -76,11 +71,11 @@ const notify = useNotification()
 
 const { importJSON, exportJSON } = handleJsonFile()
 
-const followStore = useFollowListStore()
+const config = useConfig()
+
+const follow = useFollow()
 
 const searchValue = ref('')
-
-const loading = ref(true)
 
 const isSearching = ref(false)
 
@@ -88,7 +83,7 @@ const followListEl = ref<HTMLElement>()
 
 const isUpdatingStreamer = ref(false)
 
-const { followList } = storeToRefs(followStore)
+const { followList } = storeToRefs(follow)
 
 const steps = 9
 
@@ -111,8 +106,6 @@ const followCardsDisplayed = computed(() => {
 })
 
 const loadCards = (observer: IntersectionObserver) => {
-  if (loading.value) return
-
   if (currentDisplayCount.value + steps < followStreamers.value.length) {
     currentDisplayCount.value += steps
   } else {
@@ -139,7 +132,7 @@ const editStreamer = async (streamer: Streamer) => {
 
   followList.value.streamers[streamer.user_id] = streamer
 
-  await followStore.setFollowList(followList.value)
+  await follow.setFollowList(followList.value)
 }
 
 const deleteStreamer = async (user_id: string) => {
@@ -154,7 +147,7 @@ const deleteStreamer = async (user_id: string) => {
   if (onlineExist) delete followList.value.onlineList[user_id]
 
   // TODO: stop record?
-  await followStore.setFollowList(followList.value)
+  await follow.setFollowList(followList.value)
 }
 
 const updateRecordSetting = async (
@@ -171,7 +164,7 @@ const updateRecordSetting = async (
         !followList.value.streamers[user_id].recordSetting[key]
     }
 
-    await followStore.setFollowList(followList.value)
+    await follow.setFollowList(followList.value)
   } catch (error) {
     console.error(error)
   } finally {
@@ -200,8 +193,6 @@ const getStreamers = async () => {
 const transformStreamerData = async (
   streamers: GetUsersResponse[]
 ): Promise<Streamer[]> => {
-  const { record } = await ModelSystem.getConfig()
-
   return streamers.map((streamer) => ({
     user_login: streamer.login,
     user_id: streamer.id,
@@ -209,13 +200,11 @@ const transformStreamerData = async (
     profileImg: streamer.profile_image_url,
     offlineImg: streamer.offline_image_url,
     status: { isOnline: false, isRecording: false },
-    recordSetting: record
+    recordSetting: config.userConfig.record
   }))
 }
 
 const updateFollowList = async (newStreamers: Streamer[]) => {
-  await followStore.getFollowList()
-
   const streamers = newStreamers.reduce((acc, streamer) => {
     const data = followList.value.streamers[streamer.user_id]
 
@@ -226,12 +215,12 @@ const updateFollowList = async (newStreamers: Streamer[]) => {
     return acc
   }, {} as Streamers)
 
-  followList.value.streamers = Object.assign(
-    followList.value.streamers,
+  follow.followList.streamers = Object.assign(
+    follow.followList.streamers,
     streamers
   )
 
-  const isUpdateSuccess = await followStore.setFollowList(followList.value)
+  const isUpdateSuccess = await follow.setFollowList()
 
   const status = isUpdateSuccess
     ? 'Update streamers successfully'
@@ -259,25 +248,15 @@ const addStreamerToFollowList = async () => {
 }
 
 const assignFollowList = async (importData: FollowList) => {
-  followList.value = importData
+  follow.followList = importData
 
-  await ModelSystem.setFollowList(importData)
+  await follow.setFollowList()
 }
 
 const importFollowList = async () => await importJSON(assignFollowList)
 
 const exportFollowList = async () =>
   await exportJSON(followList.value, 'followList', 'Export Follow List')
-
-onBeforeMount(async () => {
-  try {
-    await followStore.getFollowList()
-  } catch (error) {
-    console.error(error)
-  } finally {
-    loading.value = false
-  }
-})
 </script>
 
 <style scoped>
