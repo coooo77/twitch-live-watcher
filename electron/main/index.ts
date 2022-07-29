@@ -4,6 +4,7 @@ import {
   dialog,
   ipcMain,
   session,
+  Notification,
   BrowserWindow,
   WebRequestFilter,
   OpenDialogSyncOptions,
@@ -153,10 +154,13 @@ class MainProcess {
   }
 
   static listenIpcMain() {
-    // prettier-ignore
-    ;['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
+    const onEvent = ['navbar', 'logout', 'notify:online']
 
-    ;['open-win'].forEach((event) => ipcMain?.removeHandler(event))
+    onEvent.forEach((event) => ipcMain?.off(event, () => {}))
+
+    const handleEvent = ['open-win', 'showOpenDialog', 'showSaveDialog']
+
+    handleEvent.forEach((event) => ipcMain?.removeHandler(event))
 
     // new window example arg: new windows url
     ipcMain.handle('open-win', (event, arg) => {
@@ -214,6 +218,20 @@ class MainProcess {
       MainProcess.destroyAppWin()
 
       AuthProcess.createAuthWindow()
+    })
+
+    ipcMain.on('notify:online', (event, args) => {
+      const window: Electron.BrowserWindow | null =
+        BrowserWindow.fromWebContents(event.sender)
+
+      const notify = new Notification({
+        title: `${args.streamer} is online now!`,
+        body: args.timeAt
+      })
+
+      notify.on('click', () => window.show())
+
+      notify.show()
     })
   }
 

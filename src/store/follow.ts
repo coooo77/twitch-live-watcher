@@ -1,6 +1,7 @@
 import useConfig from './config'
 import { defineStore } from 'pinia'
 import FileSystem from '../util/file'
+import { ipcRenderer } from 'electron'
 import ModelSystem from '../util/model'
 import Download from '../util/download'
 import AuthService from '../util/authService'
@@ -221,7 +222,12 @@ export default defineStore('followList', {
       const { enableNotify, vodEnableRecordVOD } =
         this.followList.streamers[user_id].recordSetting
 
-      // TODO: if (enableNotify) handleNotify
+      if (enableNotify) {
+        ipcRenderer.send('notify:online', {
+          streamer: this.followList.streamers[user_id].displayName,
+          timeAt: new Date().toLocaleString()
+        })
+      }
 
       this.haveToUpdateFollowList = true
 
