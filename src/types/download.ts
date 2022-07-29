@@ -6,9 +6,10 @@ export type StreamID = string
 export type DownloadStatus = 'Downloading' | 'Queue' | 'Cancelled' | 'Success'
 
 export interface DownloadItem {
+  pid?: number
   videoID: string
+  duration: string
   createdTime: DateStringType
-  finishTime?: DateStringType
   /** able to download if less than current time */
   validDownloadTime: DateStringType
   mod: VODRecordMode

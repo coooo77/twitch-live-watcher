@@ -14,15 +14,19 @@ const config = useConfig()
 
 const follow = useFollow()
 
-const downloadList = useDownload()
+const download = useDownload()
 
 const { isWatchOnline } = storeToRefs(follow)
 
 watch(isWatchOnline, (newVal, oldVal) => {
   if (newVal) {
     follow.setCheckOnlineTimer()
+
+    download.setCheckDownloadTimer()
   } else {
     follow.clearTimer()
+
+    download.clearTimer()
   }
 })
 
@@ -30,9 +34,34 @@ onMounted(async () => {
   await Promise.all([
     config.getConfig(),
     follow.getFollowList(),
-    downloadList.getDownloadList()
+    download.getDownloadList()
   ])
 })
+
+window.onbeforeunload = (event) => {
+  const haveToClearFollow =
+    follow.haveToClearOnlineList || download.haveToClearLiveStreams
+
+  const haveToClearDownload = download.haveToClearVodOnGoing
+
+  if (haveToClearFollow && haveToClearDownload) {
+    Promise.all([follow.clearTimer(), download.clearTimer()])
+
+    return null
+  }
+
+  if (haveToClearFollow) {
+    follow.clearTimer()
+
+    return null
+  }
+
+  if (haveToClearDownload) {
+    download.clearTimer()
+
+    return null
+  }
+}
 
 /**
  * TODO:

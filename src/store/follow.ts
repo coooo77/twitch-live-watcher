@@ -32,7 +32,9 @@ export default defineStore('followList', {
   },
   getters: {
     latestOnlineList: (state) =>
-      Array.from(state.latestOnlineListMap).map(([key, value]) => value)
+      Array.from(state.latestOnlineListMap).map(([key, value]) => value),
+    haveToClearOnlineList: (state) =>
+      Object.keys(state.followList.onlineList).length !== 0
   },
   actions: {
     async getFollowList() {
@@ -121,6 +123,7 @@ export default defineStore('followList', {
 
         notify.warn(err.message || 'Unknown error')
 
+        // TODO: use clearTimer instead
         this.isWatchOnline = false
       }
     },

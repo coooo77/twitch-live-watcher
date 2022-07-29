@@ -1,5 +1,7 @@
+import fs from 'fs'
 import path from 'path'
 import cp from 'child_process'
+import FileSystem from './file'
 import { killProcess } from './common'
 import useConfig from '../store/config'
 import useFollow from '../store/follow'
@@ -267,5 +269,250 @@ export default class Download {
       default:
         return new Date().toJSON()
     }
+  }
+
+  static getMediaDuration(
+    videoPath: string,
+    showInSeconds = true
+  ): Promise<number> {
+    return new Promise((resolve, reject) => {
+      try {
+        const options = `-v error${
+          showInSeconds ? ' ' : ' -sexagesimal '
+        }-show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${videoPath}`
+
+        const task = cp.spawn('ffprobe', options.split(' '))
+
+        task.stdout.on('data', (msg) => {
+          resolve(Number(msg.toString()))
+        })
+
+        task.stderr.on('data', (msg) => {
+          throw new Error(msg.toString())
+        })
+      } catch (error) {
+        FileSystem.errorHandler(error)
+
+        resolve(-1)
+      }
+    })
+  }
+
+  static stringDurationToSec(duration: string) {
+    const time = {
+      hour: 0,
+      min: 0,
+      sec: 0
+    }
+
+    const string = duration.toLowerCase()
+
+    let number = ''
+
+    for (let i = 0; i < string.length; i++) {
+      if (string[i] === 'h') {
+        time.hour = Number(number)
+
+        number = ''
+      } else if (string[i] === 'm') {
+        time.min = Number(number)
+
+        number = ''
+      } else if (string[i] === 's') {
+        time.sec = Number(number)
+
+        number = ''
+      } else {
+        number += string[i]
+      }
+    }
+
+    const { hour, min, sec } = time
+
+    return hour * 60 * 60 + min * 60 + sec
+  }
+
+  static async recordVod(item: DownloadItem) {
+    const { userConfig } = useConfig()
+
+    const baseDir = item.dirToSaveRecord || userConfig.general.dirToSaveRecord
+
+    const filePath = path.join(baseDir, `${item.filename}.ts`)
+
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+
+    const cmd = Download.getVodCmd(item, filePath, userConfig)
+
+    let task: null | cp.ChildProcess = cp.exec(cmd)
+
+    task.on('spawn', async () => {
+      await Download.updateOngoing(item, task?.pid)
+    })
+
+    task.on('close', async (code: number) => {
+      task?.off('spawn', () => {})
+
+      task?.off('exit', () => {})
+
+      task = null
+
+      if (!fs.existsSync(filePath)) return
+
+      const isSuccess = await Download.checkDownload(filePath, item)
+
+      if (isSuccess) {
+        await Download.handleSuccess(item)
+      } else {
+        await Download.handleFailure(item)
+      }
+    })
+  }
+
+  static async handleSuccess(item: DownloadItem) {
+    const download = useDownload()
+
+    download.moveTask(item, 'onGoing', 'success', false)
+
+    await download.setDownloadList()
+  }
+
+  static async handleFailure(item: DownloadItem) {
+    const config = useConfig()
+
+    const download = useDownload()
+
+    const { reTryDownloadInterval, maxReDownloadTimes } = config.userConfig.vod
+
+    if (item.retryTimes + 1 > maxReDownloadTimes) {
+      download.moveTask(item, 'onGoing', 'error', false)
+
+      await download.setDownloadList()
+    } else {
+      const index = download.downloadList.vodList.onGoing.findIndex(
+        (i) => i.videoID === item.videoID
+      )
+
+      if (index === -1) return
+
+      download.downloadList.vodList.onGoing[index].retryTimes++
+
+      download.downloadList.vodList.onGoing[index].validDownloadTime = new Date(
+        Date.now() + reTryDownloadInterval
+      ).toJSON()
+
+      download.moveTask(item, 'onGoing', 'queue', false)
+
+      await download.setDownloadList()
+    }
+  }
+
+  static getVodCmd(item: DownloadItem, filePath: string, config: Config) {
+    const { url } = item
+
+    const showCmd = `${config.general.showDownloadCmd ? 'start ' : ''}`
+
+    return `${showCmd}streamlink ${url} best -o ${filePath}`
+  }
+
+  static async checkDownload(filepath: string, item: DownloadItem) {
+    const config = useConfig()
+
+    const { IntegrityCheck, LossOfVODDurationAllowed } = config.userConfig.vod
+
+    if (!IntegrityCheck) return true
+
+    const dataDuration = Download.stringDurationToSec(item.duration)
+
+    const fileDuration = await Download.getMediaDuration(filepath)
+
+    if (fileDuration === -1) return true
+
+    return dataDuration - fileDuration <= LossOfVODDurationAllowed
+  }
+
+  static async updateOngoing(item: DownloadItem, pid?: number) {
+    const download = useDownload()
+
+    const index = download.downloadList.vodList.onGoing.findIndex(
+      (i) => i.videoID === item.videoID
+    )
+
+    if (index === -1) return
+
+    download.downloadList.vodList.onGoing[index].pid = pid
+
+    await download.setDownloadList()
+  }
+
+  static async abortAllOngoingVod() {
+    const download = useDownload()
+
+    const { onGoing } = download.downloadList.vodList
+
+    for (const item of onGoing) {
+      if (item.pid !== undefined) killProcess(item.pid)
+
+      item.status = 'Queue'
+    }
+
+    download.downloadList.vodList.queue = Object.assign(
+      download.downloadList.vodList.queue,
+      download.downloadList.vodList.onGoing
+    )
+
+    download.downloadList.vodList.onGoing = []
+
+    await download.setDownloadList()
+  }
+
+  static async reTryVodDownload(item: DownloadItem) {
+    const download = useDownload()
+
+    const isSuccess = download.moveTask(item, 'error', 'onGoing', false)
+
+    if (!isSuccess) return
+
+    await download.setDownloadList()
+
+    await Download.recordVod(item)
+  }
+
+  static async cancelVodDownload(item: DownloadItem) {
+    const download = useDownload()
+
+    const index = download.downloadList.vodList.onGoing.findIndex(
+      (i) => i.videoID === item.videoID
+    )
+
+    if (index === -1) return
+
+    if (item.pid !== undefined) killProcess(item.pid)
+
+    download.downloadList.vodList.onGoing[index].status = 'Cancelled'
+
+    download.downloadList.vodList.error.push(
+      Object.assign({}, download.downloadList.vodList.onGoing[index])
+    )
+
+    download.downloadList.vodList.onGoing.splice(index, 1)
+
+    await download.setDownloadList()
+  }
+
+  static async deleteVodDownload(
+    item: DownloadItem,
+    from: 'queue' | 'error' | 'success'
+  ) {
+    const download = useDownload()
+
+    const index = download.downloadList.vodList[from].findIndex(
+      (i) => i.videoID === item.videoID
+    )
+
+    if (index === -1) return
+
+    download.downloadList.vodList[from].splice(index, 1)
+
+    await download.setDownloadList()
   }
 }

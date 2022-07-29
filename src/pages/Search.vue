@@ -77,7 +77,8 @@ const videoToEdit = ref<DownloadItem>({
   dirToSaveRecord: '',
   status: 'Queue',
   thumbnail_url: '',
-  title: ''
+  title: '',
+  duration: ''
 })
 
 const notify = useNotification()
@@ -153,7 +154,8 @@ const makeDownloadItem = async (videos: IVod[]): Promise<VideoSearched[]> => {
       dirToSaveRecord: setting.general.dirToSaveRecord,
       status: 'Queue',
       thumbnail_url: video.thumbnail_url,
-      title: video.title
+      title: video.title,
+      duration: video.duration
     } as DownloadItem
 
     return {

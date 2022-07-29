@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    CardDownload: typeof import('./src/components/CardDownload.vue')['default']
     CardFollow: typeof import('./src/components/CardFollow.vue')['default']
     CardLive: typeof import('./src/components/CardLive.vue')['default']
     CardSearch: typeof import('./src/components/CardSearch.vue')['default']
