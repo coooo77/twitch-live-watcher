@@ -35,10 +35,11 @@
       >
         {{ video.title }}
       </div>
+      
       <div
         class="publishTime text-themeColor4 font-bold whitespace-nowrap truncate"
       >
-        {{ publishTime }}
+        {{ displayTime }}
       </div>
 
       <div
@@ -59,6 +60,7 @@
 <script setup lang="ts">
 import { IVod } from '../api/user'
 import { Icon } from '@iconify/vue'
+import { getUrlAndPublish } from '../composable/download'
 
 const iconSize = 30
 
@@ -70,29 +72,12 @@ defineEmits<{
   (eventName: 'addVideo'): void
 }>()
 
-const imgUrl = computed(() => {
-  return props.video.thumbnail_url
-    .replace('%{width}', '320')
-    .replace('%{height}', '180')
-})
+const { thumbnail_url, published_at } = toRefs(props.video)
 
-const publishTime = computed(() => {
-  const time = new Date(props.video.published_at)
-
-  const year = time.getFullYear()
-
-  const month = time.getMonth() + 1
-
-  const day = time.getDay()
-
-  const hour = time.getHours()
-
-  const minute = time.getMinutes()
-
-  const second = time.getSeconds()
-
-  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
-})
+const { imgUrl, displayTime } = getUrlAndPublish(
+  thumbnail_url.value,
+  published_at.value
+)
 </script>
 
 <style scoped>
