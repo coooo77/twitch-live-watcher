@@ -16,6 +16,7 @@ type MapList = Map<Streamer['user_id'], FollowedStream>
 interface State {
   latestOnlineListMap: MapList
   checkTimer: number | null
+  isWatchOnline: boolean
   haveToUpdateFollowList: boolean
   followList: FollowList
 }
@@ -25,6 +26,7 @@ export default defineStore('followList', {
     return {
       latestOnlineListMap: new Map(),
       checkTimer: null,
+      isWatchOnline: false,
       haveToUpdateFollowList: false,
       followList: StreamerSystem.defaultFollowList
     } as State
@@ -100,6 +102,8 @@ export default defineStore('followList', {
       return mapList
     },
     async setCheckOnlineTimer() {
+      if (!this.isWatchOnline) return
+
       const config = useConfig()
 
       const { checkStreamInterval } = config.userConfig.general
@@ -119,6 +123,8 @@ export default defineStore('followList', {
         const notify = useNotification()
 
         notify.warn(err.message || 'Unknown error')
+
+        this.isWatchOnline = false
 
         await this.clearTimer()
       }

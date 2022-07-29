@@ -229,7 +229,7 @@ class MainProcess {
         body: args.timeAt
       })
 
-      notify.on('click', () => window.show())
+      notify.on('click', () => window?.show())
 
       notify.show()
     })
@@ -538,7 +538,7 @@ class AuthService {
 
     const response = await fetch(url, options)
 
-    const data = await response.json() as any
+    const data = (await response.json()) as any
 
     AuthService.userID = data.sub
 
