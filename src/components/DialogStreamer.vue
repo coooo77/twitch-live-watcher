@@ -271,7 +271,7 @@
 <script setup lang="ts">
 import ConfigSystem from '../util/config'
 import { Streamer } from '../types/streamer'
-
+// FIXME copy raw data and resume default streamer data
 const props = defineProps<{
   streamer: Streamer
   isShowDialogContent: boolean
@@ -299,9 +299,9 @@ const lastStream = computed(() => {
 
   const month = time.getMonth() + 1
 
-  const day = time.getDay()
+  const date = time.getDate()
 
-  return [year, month, day].join('/')
+  return [year, month, date].join('/')
 })
 
 const editStreamer = () => {

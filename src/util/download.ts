@@ -64,12 +64,11 @@ export default class Download {
       stream
     )
 
-    const filePath = Download.getExportPath(config, filename)
+    const filePath = path.join(config.general.dirToSaveRecord, `${filename}.ts`)
 
-    const { showDownloadCmd } = config.general
+    const showCmd = `${config.general.showDownloadCmd ? 'start ' : ''}`
 
-    // prettier-ignore
-    return `${showDownloadCmd ? 'start ' : ''}streamlink ${sourceUrl} best -o ${filePath}.mp4`
+    return `${showCmd}streamlink ${sourceUrl} best -o ${filePath}`
   }
 
   static checkStatus(limit: number, downloadList: DownloadList) {
@@ -115,10 +114,6 @@ export default class Download {
       .replace('{sec}', String(targetTime.getSeconds()).padStart(2, '0'))
   }
 
-  static getExportPath(config: Config, filename: string) {
-    return path.join(config.general.dirToSaveRecord, filename)
-  }
-
   static async addDownloadRecord(stream: FollowedStream, pid?: number) {
     const download = useDownload()
 
@@ -155,15 +150,13 @@ export default class Download {
   static async abortAllDownloads() {
     const download = useDownload()
 
-    const downloadList = await download.getDownloadList()
-
-    for (const item of Object.values(downloadList.liveStreams)) {
+    for (const item of Object.values(download.downloadList.liveStreams)) {
       if (item.pid !== undefined) killProcess(item.pid)
     }
 
-    downloadList.liveStreams = {}
+    download.downloadList.liveStreams = {}
 
-    await download.setDownloadList(downloadList)
+    await download.setDownloadList()
   }
 
   static async abortLiveRecord(stream: FollowedStream) {
@@ -231,7 +224,8 @@ export default class Download {
       user_login: video.user_login,
       status: 'Queue',
       thumbnail_url: video.thumbnail_url,
-      title: video.title
+      title: video.title,
+      duration: video.duration
     }))
   }
 

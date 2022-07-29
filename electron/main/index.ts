@@ -154,9 +154,8 @@ class MainProcess {
 
   static listenIpcMain() {
     // prettier-ignore
-    ['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
+    ;['navbar', 'logout'].forEach((event) => ipcMain?.off(event, () => {}))
 
-    ;
     ;['open-win'].forEach((event) => ipcMain?.removeHandler(event))
 
     // new window example arg: new windows url
@@ -232,7 +231,7 @@ class MainProcess {
     })
 
     browserWindow.on('close', (event) => {
-      // TODO: clear online list、confirm leave before close
+      // TODO: check if have to clear data before exit
       const choice = dialog.showMessageBoxSync(browserWindow, {
         type: 'question',
         buttons: ['Yes', 'No'],
