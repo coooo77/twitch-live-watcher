@@ -75,6 +75,8 @@ export default defineStore('download', {
         const notify = useNotification()
 
         notify.warn(err.message || 'Unknown error')
+
+        await this.clearTimer()
       }
     },
     async clearTimer() {
