@@ -23,7 +23,7 @@
               v-for="item of videosSearched"
               :key="item.video.id"
               :video="item.video"
-              @add-video="openAddDialog(item.downloadItem, item.video)"
+              @add-video="openAddDialog(item.downloadItem)"
             />
           </div>
         </el-scrollbar>
@@ -40,7 +40,6 @@
     <DialogVideo
       v-model:isShowDialogContent="isShowDialogContent"
       :item="videoToEdit"
-      :title="targetVideoTitle"
     />
   </DialogWrapper>
 </template>
@@ -66,8 +65,6 @@ const isShowDialog = ref(false)
 
 const isShowDialogContent = ref(false)
 
-const targetVideoTitle = ref('')
-
 const videoToEdit = ref<DownloadItem>({
   videoID: '',
   createdTime: '',
@@ -79,7 +76,8 @@ const videoToEdit = ref<DownloadItem>({
   filename: '',
   dirToSaveRecord: '',
   status: 'Queue',
-  thumbnail_url: ''
+  thumbnail_url: '',
+  title: ''
 })
 
 const notify = useNotification()
@@ -90,9 +88,7 @@ const searchValue = ref('')
 
 const videosSearched = ref<VideoSearched[]>([])
 
-const openAddDialog = (item: DownloadItem, video: IVod) => {
-  targetVideoTitle.value = video.title
-
+const openAddDialog = (item: DownloadItem) => {
   videoToEdit.value = item
 
   isShowDialog.value = true
@@ -156,7 +152,8 @@ const makeDownloadItem = async (videos: IVod[]): Promise<VideoSearched[]> => {
       user_login: video.user_login,
       dirToSaveRecord: setting.general.dirToSaveRecord,
       status: 'Queue',
-      thumbnail_url: video.thumbnail_url
+      thumbnail_url: video.thumbnail_url,
+      title: video.title
     } as DownloadItem
 
     return {

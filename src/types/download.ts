@@ -3,7 +3,7 @@ import { VODRecordMode } from './streamer'
 
 export type StreamID = string
 
-export type DownloadStatus = 'Downloading' | 'Queue' | 'Cancelled'
+export type DownloadStatus = 'Downloading' | 'Queue' | 'Cancelled' | 'Success'
 
 export interface DownloadItem {
   videoID: string
@@ -19,7 +19,8 @@ export interface DownloadItem {
   note?: string
   dirToSaveRecord?: string
   status: DownloadStatus
-  thumbnail_url: string
+  thumbnail_url: string,
+  title: string
 }
 
 export interface VodDownload {

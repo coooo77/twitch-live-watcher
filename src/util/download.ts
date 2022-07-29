@@ -230,7 +230,8 @@ export default class Download {
       ),
       user_login: video.user_login,
       status: 'Queue',
-      thumbnail_url: video.thumbnail_url
+      thumbnail_url: video.thumbnail_url,
+      title: video.title
     }))
   }
 

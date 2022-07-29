@@ -17,7 +17,7 @@
             </div>
 
             <div class="titleValue text whitespace-nowrap">
-              {{ title }}
+              {{ item.title }}
             </div>
 
             <div class="folder text text-right">
@@ -77,7 +77,6 @@ import { useNotification } from '../store/notification'
 
 const props = defineProps<{
   item: DownloadItem
-  title: string
   isShowDialogContent: boolean
 }>()
 
