@@ -11,7 +11,7 @@ export default class ConfigSystem {
     // TODO: get download folder
     dirToSaveRecord: path.parse(os.homedir()).root,
     numOfDownloadLimit: 0,
-    showDownloadCmd: true
+    showDownloadCmd: false
   }
 
   static explanationGeneralSetting = {
@@ -39,16 +39,16 @@ export default class ConfigSystem {
 
   static defaultRecordSetting: RecordSetting = {
     enableRecord: true,
-    enableNotify: true,
-    vodEnableRecordVOD: true,
-    vodIsStopRecordStream: true,
-    vodGetStreamIfNoVod: true,
+    enableNotify: false,
+    vodEnableRecordVOD: false,
+    vodIsStopRecordStream: false,
+    vodGetStreamIfNoVod: false,
     vodMode: 'queue',
     vodCountDownInMinutes: 30,
     vodTimeZone: new Date(2022, 1, 10, 3, 0).toISOString(),
     vodFileNameTemplate:
       '{streamer}_TwitchVOD_id_{id}_{year}{month}{day}_{hr}{min}{sec}_{duration}',
-    checkStreamContentTypeEnable: true,
+    checkStreamContentTypeEnable: false,
     checkStreamContentTypeTargetGameNames: 'Art;Just Chatting;',
     fileNameTemplate:
       '{streamer}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
@@ -63,7 +63,7 @@ export default class ConfigSystem {
     vodMode:
       'VOD download mode, three mode available, queue, timeZone and countDown',
     vodCountDownInMinutes: 'download VOD after x minutes',
-    vodTimeZone: 'download VOD at specified time zone',
+    vodTimeZone: 'download VOD after specified time zone',
     vodFileNameTemplate: 'Specify a default filename for live stream downloads',
     checkStreamContentTypeEnable: 'enable check game name',
     checkStreamContentTypeTargetGameNames:
@@ -100,7 +100,7 @@ export default class ConfigSystem {
     },
     {
       mode: 'Time Zone',
-      explanation: 'download VOD at specified time zone'
+      explanation: 'download VOD after specified time zone'
     }
   ]
 
