@@ -1,5 +1,6 @@
 import useConfig from './config'
 import { defineStore } from 'pinia'
+import useDownload from './download'
 import FileSystem from '../util/file'
 import { ipcRenderer } from 'electron'
 import ModelSystem from '../util/model'
@@ -186,6 +187,12 @@ export default defineStore('followList', {
       }
     },
     async handleStreamerOnline(mapList: MapList) {
+      const config = useConfig()
+
+      const limit = config.userConfig.general.numOfDownloadLimit
+
+      const download = useDownload()
+
       for (const [user_id, stream] of Array.from(mapList)) {
         const streamer = this.followList.streamers[user_id]
 
@@ -208,7 +215,17 @@ export default defineStore('followList', {
         const inValidGameName =
           checkStreamContentTypeEnable && stream.game_name && !isValidTag
 
-        if (isRecording || inValidGameName || !enableRecord) continue
+        const isReachDownloadLimit =
+          limit > 0 &&
+          Object.keys(download.downloadList.liveStreams).length + 1 > limit
+
+        if (
+          isRecording ||
+          !enableRecord ||
+          inValidGameName ||
+          isReachDownloadLimit
+        )
+          continue
 
         const isRecordLiveStream = this.handleRecordLive(streamer)
 

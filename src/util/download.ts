@@ -395,7 +395,7 @@ export default class Download {
       download.downloadList.vodList.onGoing[index].retryTimes++
 
       download.downloadList.vodList.onGoing[index].validDownloadTime = new Date(
-        Date.now() + reTryDownloadInterval
+        Date.now() + reTryDownloadInterval * 60 * 1000
       ).toJSON()
 
       await download.moveTask(item, 'onGoing', 'queue', false)
