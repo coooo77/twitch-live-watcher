@@ -88,9 +88,9 @@ class MainProcess {
     MainProcess.electronWindow = new BrowserWindow({
       title: 'Main window',
       icon: join(MainProcess.ROOT_PATH.public, 'favicon.ico'),
-      // frame: false,
-      // transparent: true,
-      // hasShadow: false,
+      frame: false,
+      transparent: true,
+      hasShadow: false,
       minWidth: 600,
       webPreferences: {
         preload: MainProcess.preload,
