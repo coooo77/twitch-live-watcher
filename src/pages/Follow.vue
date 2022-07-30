@@ -200,7 +200,7 @@ const transformStreamerData = async (
     profileImg: streamer.profile_image_url,
     offlineImg: streamer.offline_image_url,
     status: { isOnline: false, isRecording: false },
-    recordSetting: config.userConfig.record
+    recordSetting: Object.assign({}, config.userConfig.record)
   }))
 }
 
