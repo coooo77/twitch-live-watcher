@@ -50,7 +50,7 @@ export default class Download {
 
       task?.off('spawn', () => {})
 
-      task?.off('exit', () => {})
+      task?.off('close', () => {})
 
       task = null
     })
@@ -352,11 +352,13 @@ export default class Download {
     task.on('close', async (code: number) => {
       task?.off('spawn', () => {})
 
-      task?.off('exit', () => {})
+      task?.off('close', () => {})
 
       task = null
 
-      if (!fs.existsSync(filePath)) return
+      if (code === 1 || !fs.existsSync(filePath)) {
+        return await Download.handleFailure(item)
+      }
 
       const isSuccess = await Download.checkDownload(filePath, item)
 
@@ -371,9 +373,7 @@ export default class Download {
   static async handleSuccess(item: DownloadItem) {
     const download = useDownload()
 
-    download.moveTask(item, 'onGoing', 'success', false)
-
-    await download.setDownloadList()
+    await download.moveTask(item, 'onGoing', 'success', false)
   }
 
   static async handleFailure(item: DownloadItem) {
@@ -384,9 +384,7 @@ export default class Download {
     const { reTryDownloadInterval, maxReDownloadTimes } = config.userConfig.vod
 
     if (item.retryTimes + 1 > maxReDownloadTimes) {
-      download.moveTask(item, 'onGoing', 'error', false)
-
-      await download.setDownloadList()
+      await download.moveTask(item, 'onGoing', 'error', false)
     } else {
       const index = download.downloadList.vodList.onGoing.findIndex(
         (i) => i.videoID === item.videoID
@@ -400,9 +398,7 @@ export default class Download {
         Date.now() + reTryDownloadInterval
       ).toJSON()
 
-      download.moveTask(item, 'onGoing', 'queue', false)
-
-      await download.setDownloadList()
+      await download.moveTask(item, 'onGoing', 'queue', false)
     }
   }
 
@@ -468,7 +464,7 @@ export default class Download {
   static async reTryVodDownload(item: DownloadItem) {
     const download = useDownload()
 
-    const isSuccess = download.moveTask(item, 'error', 'onGoing', false)
+    const isSuccess = await download.moveTask(item, 'error', 'onGoing', false)
 
     if (!isSuccess) return
 

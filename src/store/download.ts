@@ -96,7 +96,7 @@ export default defineStore('download', {
 
         if (isInvalidQueue || isInvalidTime) continue
 
-        this.moveTask(task, 'queue', 'onGoing')
+        await this.moveTask(task, 'queue', 'onGoing')
 
         if (task.mod === 'timeZone') {
           await this.handleTimeZone(task)
@@ -117,11 +117,11 @@ export default defineStore('download', {
         this.haveToUpdateStore = false
       }
     },
-    moveTask(
+    async moveTask(
       item: DownloadItem,
       from: 'queue' | 'onGoing' | 'success' | 'error',
       to: 'queue' | 'onGoing' | 'success' | 'error',
-      useUpdate = true
+      useTimerUpdate = true
     ) {
       const index = this.downloadList.vodList[from].findIndex(
         (i) => i.videoID === item.videoID
@@ -152,7 +152,11 @@ export default defineStore('download', {
 
       this.downloadList.vodList[from].splice(index, 1)
 
-      if (useUpdate) this.haveToUpdateStore = true
+      if (useTimerUpdate) {
+        this.haveToUpdateStore = true
+      } else {
+        await this.setDownloadList()
+      }
 
       return true
     },

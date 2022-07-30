@@ -2,32 +2,36 @@
   <div
     class="cardSearch relative generalShadow overflow-hidden rounded-lg border border-themeColor4 bg-themeColor1 flex flex-col"
   >
-    <div class="header border-b bg-themeColor4 relative grow flex">
-      <div class="views absolute top-2 left-2 text">
-        {{ video.view_count }} views
-      </div>
+    <div
+      class="header h-0 pb-[56.25%] border-b bg-themeColor4 relative"
+    >
+      <div class="cardLayout absolute inset-0 flex">
+        <div class="views absolute top-2 left-2 text">
+          {{ video.view_count }} views
+        </div>
 
-      <div class="duration absolute bottom-2 right-2 text">
-        {{ video.duration }}
-      </div>
+        <div class="duration absolute bottom-2 right-2 text">
+          {{ video.duration }}
+        </div>
 
-      <img
-        v-show="imgUrl"
-        class="thumbnail w-full border-themeColor4"
-        :src="imgUrl"
-        :alt="video.id"
-      />
+        <img
+          v-show="imgUrl"
+          class="thumbnail w-full border-themeColor4"
+          :src="imgUrl"
+          :alt="video.id"
+        />
 
-      <div
-        v-show="imgUrl === ''"
-        class="noImg text-themeColor1 font-bold text-center m-auto text-xl"
-      >
-        NO IMAGE
+        <div
+          v-show="imgUrl === ''"
+          class="noImg text-themeColor1 font-bold text-center m-auto text-xl"
+        >
+          NO IMAGE
+        </div>
       </div>
     </div>
 
     <div
-      class="footer mt-auto grid grid-rows-[min-content,min-content] grid-cols-[1fr,min-content] gap-1 p-2"
+      class="footer grid grid-rows-[min-content,min-content] grid-cols-[1fr,min-content] gap-1 p-2"
     >
       <div
         :title="video.title"
@@ -35,7 +39,7 @@
       >
         {{ video.title }}
       </div>
-      
+
       <div
         class="publishTime text-themeColor4 font-bold whitespace-nowrap truncate"
       >
