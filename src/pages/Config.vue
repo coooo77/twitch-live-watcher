@@ -117,9 +117,7 @@
                       />
                     </el-select>
 
-                    <template
-                      v-if="userConfig.record.vodMode === 'countDown'"
-                    >
+                    <template v-if="userConfig.record.vodMode === 'countDown'">
                       <el-input-number
                         v-model="userConfig.record.vodCountDownInMinutes"
                         :min="0"
@@ -391,6 +389,7 @@ import useConfig from '../store/config'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
 import { getDirPath } from '../util/common'
+import { onBeforeRouteLeave } from 'vue-router'
 import { handleJsonFile } from '../composable/common'
 import { useNotification } from '../store/notification'
 
@@ -429,6 +428,8 @@ const saveConfig = async () => {
     await config.setConfig(userConfig.value)
 
     notify.success('configuration saved successfully')
+
+    isConfigChanged.value = false
   } catch (error) {
     console.error(error)
 
@@ -470,9 +471,17 @@ watch(
   { deep: true }
 )
 
-// TODO: before leave check
+onBeforeRouteLeave((to, from) => {
+  if (!isConfigChanged.value) return
 
-onBeforeMount(async () => {
+  const answer = window.confirm(
+    'Do you really want to leave? you have unsaved changes!'
+  )
+  // cancel the navigation and stay on the same page
+  if (!answer) return false
+})
+
+onMounted(async () => {
   loading.value = false
 })
 </script>
