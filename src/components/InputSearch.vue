@@ -8,6 +8,7 @@
       :placeholder="placeholder"
       v-model="_inputValue"
       type="text"
+      @keyup.enter="$emit('search')"
     />
 
     <Icon
