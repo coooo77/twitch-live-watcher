@@ -1,9 +1,9 @@
 {
-  "name": "electron-vue-vite",
-  "version": "2.0.0",
+  "name": "twitch-live-watcher",
+  "version": "1.0.0",
   "main": "dist/electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Record online videos and VOD from Twitch",
+  "author": "coSevenSeven <cosevenseven@gmail.com>",
   "license": "MIT",
   "private": true,
   "scripts": {

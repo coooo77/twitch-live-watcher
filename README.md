@@ -1,75 +1,65 @@
-# electron-vite-vue
+# twitch-live-watcher
 
-🥳 Really simple `Electron` + `Vue` + `Vite` boilerplate.
+Download videos on Twitch.
 
-[![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ae3863e3-1aec-4eb1-8f9f-1890af56929d/deploy-status)](https://app.netlify.com/sites/electron-vite/deploys)
-![GitHub license](https://img.shields.io/github/license/caoxiemeihao/electron-vite-vue?style=flat)
-![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/electron-vite-vue?color=fa6470&style=flat)
-![GitHub forks](https://img.shields.io/github/forks/caoxiemeihao/electron-vite-vue?style=flat)
+![](https://i.imgur.com/bGTg479.png)
 
 ## Features
+* ⏺️ record online stream and latest VOD automatically
+* 💾 download VOD manually
+* ⚙️ customize record setting for streamers
+* ✒️ specify a filename template with wildcards for downloads
+* 📞 online notification for streamers 
+* ⏱ specify a download time for downloads
+* 🧲 filter for game tag
+ 
 
-📦 Out of the box  
-🎯 Based on the official [vue-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vue-ts) template, less invasive  
-🌱 Extensible, really simple directory structure  
-💪 Support using Node.js API in Electron-Renderer  
-🔩 Support C/C++ native addons  
-🖥 It's easy to implement multiple windows  
+## Prerequisites
 
-## Quick Start
+* install [Streamlink](https://streamlink.github.io/) (minor version 3.0.0)
+* install [FFmpeg](https://ffmpeg.org/) and add ffprobe.exe to path in environment variable (optional)
+* follow streamers you want to record (App detects online streamers from user's follow list)
 
-```sh
-npm create electron-vite
-```
+## Installation
 
-<!-- [![quick-start](https://asciinema.org/a/483731.svg)](https://asciinema.org/a/483731) -->
+[Installer](https://github.com/coSevenSeven/twitch-live-watcher/releases/tag/v1.0.0)
 
-![electron-vite-vue.gif](https://github.com/electron-vite/electron-vite-vue/blob/main/public/electron-vite-vue.gif?raw=true)
+## Configuration
 
-## Debug
+### General Setting
 
-![electron-vite-react-debug.gif](https://github.com/electron-vite/electron-vite-react/blob/main/public/electron-vite-react-debug.gif?raw=true)
+| name                     | function                                                         |
+|--------------------------|------------------------------------------------------------------|
+| Check Stream Interval    | interval for online check (unit: seconds)                        |
+| Dir To Save Record       | directory path where files save                                  |
+| number of Download Limit | numbers of live stream recorder allow to run, set 0 as unlimited |
 
-## Directory
+### VOD Setting
 
-```diff
-+ ├─┬ electron
-+ │ ├─┬ main
-+ │ │ └── index.ts    entry of Electron-main
-+ │ └─┬ preload
-+ │   └── index.ts    entry of Electron-preload
-  ├─┬ src
-  │ └── main.ts       entry of Electron-renderer
-  ├── index.html
-  ├── package.json
-  └── vite.config.ts
-```
+deal with VOD downloads
 
-## 🚨 `dependencies` vs `devDependencies`
+| name                         | function                                                  |
+|------------------------------|-----------------------------------------------------------|
+| Retry Download Interval      | minutes to download VOD again when VOD download is failed |
+| Max redownload Times         | maximum times to download VOD                             |
+| Loss of VOD Duration Allowed | acceptable amount of loss duration (unit: seconds)        |
+| Integrity Check              | check duration while VOD downloaded by ffprobe            |
 
-**Put Node.js packages in `dependencies`**
+### Record Setting
 
-**e.g.** `electron-store` `sqlite3` `serilaport` `mongodb` ...others
+default streamers record setting for new add streamer
 
-**Put Web packages in `devDependencies`**
-
-**e.g.** `vue` `vue-router` `vuex` `pinia` `element-plus` `ant-design-vue` `axios` ...others
-
-See more 👉 [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
-
-## 🚨 ESM packages
-
-**e.g.** `node-fetch` `execa` `got` ...others
-
-1. `npm i vite-plugin-esmodule -D`
-2. Configure in vite.config.ts
-
-```ts
-import esmodule from 'vite-plugin-esmodule'
-export default {
-  plugins: [
-    esmodule(['got', 'execa', 'node-fetch']),
-  ],
-}
-```
+| name                                        | function                                                                                               |
+|---------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| Enable Record                               | enable record stream                                                                                   |
+| Enable Notify                               | enable notify when streamer online                                                                     |
+| Enable Record VOD                           | enable record vod                                                                                      |
+| Is Stop Record Stream                       | disable record stream while vod is available                                                           |
+| Get Stream If No Vod                        | enable record stream while vod is not available                                                        |
+| VOD Mode                                    | VOD download mode, three mode available, queue, timeZone and countDown                                 |
+| Count Down In Minutes                       | download VOD after x minutes                                                                           |
+| Timezone                                    | download VOD after specified time zone                                                                 |
+| VOD Filename Template                       | Specify a default filename for live stream downloads                                                   |
+| Check Stream Content Type Enable            | enable check game name; Check VOD and live streams if enabled                                          |
+| Check Stream Content Type Target Game Names | check stream game names, stop record if not included. Use ";" to separate tags. e.g. Art;Just Chatting |
+| Filename Template                           | specify a default filename for VOD downloads                                                           |
