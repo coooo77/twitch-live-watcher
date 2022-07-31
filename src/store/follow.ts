@@ -208,28 +208,30 @@ export default defineStore('followList', {
           .toLowerCase()
           .includes(stream.game_name.toLowerCase())
 
-        await this.updateOnlineStatus(user_id, isValidTag)
+        const isValidGameName = checkStreamContentTypeEnable
+          ? Boolean(stream.game_name && isValidTag)
+          : true
+
+        await this.updateOnlineStatus(user_id, isValidGameName)
 
         const { isRecording } = streamer.status
-
-        const inValidGameName =
-          checkStreamContentTypeEnable && stream.game_name && !isValidTag
 
         const isReachDownloadLimit =
           limit > 0 &&
           Object.keys(download.downloadList.liveStreams).length + 1 > limit
 
+        const isStopRecordDueToVod = this.checkVodToStopRecord(streamer)
+
         if (
           isRecording ||
           !enableRecord ||
-          inValidGameName ||
+          !isValidGameName ||
+          isStopRecordDueToVod ||
           isReachDownloadLimit
         )
           continue
 
-        const isRecordLiveStream = this.handleRecordLive(streamer)
-
-        if (isRecordLiveStream) await DownloadSystem.recordLiveStream(stream)
+        await DownloadSystem.recordLiveStream(stream)
       }
     },
     async updateOnlineStatus(user_id: string, isValidTag: boolean) {
@@ -269,21 +271,23 @@ export default defineStore('followList', {
         streamStartedAt: new Date().toJSON()
       }
     },
-    handleRecordLive(streamer: Streamer) {
+    checkVodToStopRecord(streamer: Streamer) {
       const { user_id } = streamer
 
-      const { vodGetStreamIfNoVod, vodIsStopRecordStream } =
+      const { vodEnableRecordVOD, vodGetStreamIfNoVod, vodIsStopRecordStream } =
         streamer.recordSetting
+
+      if (!vodEnableRecordVOD) return false
 
       const haveVod = this.followList.streamers[user_id].status.onlineVodID
 
-      const haveVodAndStopRecord = haveVod && vodIsStopRecordStream
+      const haveVodAndStopRecord = Boolean(haveVod && vodIsStopRecordStream)
 
-      const noVodAndStopRecord = !haveVod && !vodGetStreamIfNoVod
+      const noVodAndStopRecord = Boolean(!haveVod && !vodGetStreamIfNoVod)
 
       const isStopRecordLive = noVodAndStopRecord || haveVodAndStopRecord
 
-      return !isStopRecordLive
+      return isStopRecordLive
     }
   }
 })

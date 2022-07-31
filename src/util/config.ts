@@ -65,7 +65,7 @@ export default class ConfigSystem {
     vodCountDownInMinutes: 'download VOD after x minutes',
     vodTimeZone: 'download VOD after specified time zone',
     vodFileNameTemplate: 'Specify a default filename for live stream downloads',
-    checkStreamContentTypeEnable: 'enable check game name',
+    checkStreamContentTypeEnable: 'enable check game name; Check VOD and live streams if enabled',
     checkStreamContentTypeTargetGameNames:
       'check stream game names, stop record if not included. Use ";" to separate tags. e.g. Art;Just Chatting',
     fileNameTemplate: 'Specify a default filename for VOD downloads'

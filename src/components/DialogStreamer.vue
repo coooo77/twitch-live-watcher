@@ -127,7 +127,7 @@
             <DividerTitle title="VOD Settings" />
 
             <div class="vodSetting settingLayout insetShadow">
-              <InputRow title="Enable Record">
+              <InputRow title="Enable VOD">
                 <el-switch
                   size="small"
                   v-model="streamer.recordSetting.vodEnableRecordVOD"
