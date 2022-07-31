@@ -17,7 +17,7 @@ export default class ConfigSystem {
   static explanationGeneralSetting = {
     checkStreamInterval: 'interval for online check (unit: seconds)',
     dirToSaveRecord: 'directory path where files save',
-    numOfDownloadLimit: 'numbers of recorder allow to run, set 0 as unlimited',
+    numOfDownloadLimit: 'numbers of live stream recorder allow to run, set 0 as unlimited',
     showDownloadCmd: 'show download command prompt'
   }
 
@@ -55,8 +55,8 @@ export default class ConfigSystem {
   }
 
   static explanationRecordSetting = {
-    enableRecord: 'enable record stream or vod',
-    enableNotify: 'enable online notify',
+    enableRecord: 'enable record stream',
+    enableNotify: 'enable notify when streamer online',
     vodEnableRecordVOD: 'enable record vod',
     vodIsStopRecordStream: 'disable record stream while vod is available',
     vodGetStreamIfNoVod: 'enable record stream while vod is not available',
@@ -64,11 +64,11 @@ export default class ConfigSystem {
       'VOD download mode, three mode available, queue, timeZone and countDown',
     vodCountDownInMinutes: 'download VOD after x minutes',
     vodTimeZone: 'download VOD after specified time zone',
-    vodFileNameTemplate: 'Specify a default filename for live stream downloads',
+    vodFileNameTemplate: 'specify a default filename for live stream downloads',
     checkStreamContentTypeEnable: 'enable check game name; Check VOD and live streams if enabled',
     checkStreamContentTypeTargetGameNames:
       'check stream game names, stop record if not included. Use ";" to separate tags. e.g. Art;Just Chatting',
-    fileNameTemplate: 'Specify a default filename for VOD downloads'
+    fileNameTemplate: 'specify a default filename for VOD downloads'
   }
 
   static defaultSetting: Config = {
