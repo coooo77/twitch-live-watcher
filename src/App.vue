@@ -75,7 +75,7 @@ window.onbeforeunload = (event) => {
     <Menu />
     <div class="pageView grow grid grid-rows-[min-content,1fr]">
       <div
-        class="pageTitle select-none border-b-[9px] text-[72px] font-bold text-themeColor4 leading-[90px] mb-4"
+        class="pageTitle select-none border-b-[9px] text-[50px] font-bold text-themeColor4 leading-[60px] mb-4 sm:text-[72px] sm:leading-[90px]"
       >
         {{ route.meta.title }}
       </div>

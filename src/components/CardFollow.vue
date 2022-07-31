@@ -1,7 +1,7 @@
 <template>
   <div class="cardFollow">
     <div
-      class="layout w-full grid grid-row-2 gap-1 border border-themeColor4 bg-themeColor2 rounded-lg generalShadow overflow-hidden"
+      class="layout w-full grid grid-rows-[min-content,min-content] grid-cols-1 gap-1 border border-themeColor4 bg-themeColor2 rounded-lg generalShadow overflow-hidden"
     >
       <div class="left relative overflow-hidden border-b border-themeColor4">
         <div class="profile w-full h-0 pb-[100%] relative">
@@ -12,16 +12,19 @@
         </div>
       </div>
 
-      <div class="right px-4 pb-4 grid grid-rows-4 gap-1">
-        <div class="userName relative">
-          <div class="absolute inset-0">
-            <div
-              :title="displayName"
-              class="text border-b-4 text-xl text-center text-themeColor4 font-bold truncate"
-            >
-              {{ displayName }}
-            </div>
-          </div>
+      <div class="right px-4 pb-4 grid grid-rows-[min-content,min-content,1fr,1fr,1fr] grid-cols-1 gap-1">
+        <div
+          :title="displayName"
+          class="userName text text-2xl text-center text-themeColor4 font-bold truncate"
+        >
+          {{ displayName }}
+        </div>
+
+        <div
+          :title="user_login"
+          class="user_login text border-b-4 text-lg text-center text-themeColor4 truncate"
+        >
+          {{ user_login }}
         </div>
 
         <div class="record">
@@ -86,7 +89,7 @@ const props = defineProps<{
   isUpdatingStreamer: boolean
 }>()
 
-const { profileImg, displayName } = toRefs(props.streamer)
+const { profileImg, displayName, user_login } = toRefs(props.streamer)
 
 const _enableRecord = computed({
   get() {

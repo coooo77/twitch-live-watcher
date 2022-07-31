@@ -86,7 +86,7 @@ const toggle = () => {
 }
 
 .optionName {
-  @apply select-none font-bold flex justify-center grow transition-all overflow-hidden;
+  @apply select-none font-bold hidden mobileL:flex justify-center grow transition-all overflow-hidden text-sm sm:text-base;
 }
 
 .option-active {

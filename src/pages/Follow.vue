@@ -106,7 +106,7 @@ const followCardsDisplayed = computed(() => {
 })
 
 const loadCards = (observer: IntersectionObserver) => {
-  if (currentDisplayCount.value + steps < followStreamers.value.length) {
+  if (currentDisplayCount.value < followStreamers.value.length) {
     currentDisplayCount.value += steps
   } else {
     observer.disconnect()

@@ -91,7 +91,8 @@ class MainProcess {
       frame: false,
       transparent: true,
       hasShadow: false,
-      minWidth: 600,
+      minWidth: 375,
+      minHeight: 667,
       webPreferences: {
         preload: MainProcess.preload,
         nodeIntegration: true,
