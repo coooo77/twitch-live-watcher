@@ -13,6 +13,11 @@ Download videos on Twitch.
 * ⏱ specify a download time for downloads
 * 🧲 filter for game tag
  
+## Design
+
+* [UI Mock](https://i.imgur.com/WgXHfca.png)
+* [UI Design](https://www.figma.com/file/gae4kxI6VvmJ5AkifO6mKC/Twitch-Live-Watcher?node-id=0%3A1)
+* [User Flow](https://i.imgur.com/u95J1t6.png)
 
 ## Prerequisites
 
@@ -32,7 +37,8 @@ Download videos on Twitch.
 |--------------------------|------------------------------------------------------------------|
 | Check Stream Interval    | interval for online check (unit: seconds)                        |
 | Dir To Save Record       | directory path where files save                                  |
-| number of Download Limit | numbers of live stream recorder allow to run, set 0 as unlimited |
+| Number of Download Limit | numbers of live stream recorder allow to run, set 0 as unlimited |
+| Show Download Cmd        | show download prompt command                                    |
 
 ### VOD Setting
 
