@@ -212,7 +212,7 @@ export default defineStore('followList', {
           ? Boolean(stream.game_name && isValidTag)
           : true
 
-        await this.updateOnlineStatus(user_id, isValidGameName)
+        await this.updateOnlineStatus(stream, isValidGameName)
 
         const { isRecording } = streamer.status
 
@@ -234,7 +234,9 @@ export default defineStore('followList', {
         await DownloadSystem.recordLiveStream(stream)
       }
     },
-    async updateOnlineStatus(user_id: string, isValidTag: boolean) {
+    async updateOnlineStatus(stream: FollowedStream, isValidTag: boolean) {
+      const { user_id, user_login, user_name } = stream
+
       const isStillOnline = this.followList.onlineList[user_id] !== undefined
 
       if (isStillOnline) return
@@ -270,6 +272,10 @@ export default defineStore('followList', {
         isOnline: true,
         streamStartedAt: new Date().toJSON()
       }
+
+      this.followList.streamers[user_id].user_login = user_login
+
+      this.followList.streamers[user_id].displayName = user_name
     },
     checkVodToStopRecord(streamer: Streamer) {
       const { user_id } = streamer

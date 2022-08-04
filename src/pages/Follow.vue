@@ -199,20 +199,24 @@ const transformStreamerData = async (
 }
 
 const updateFollowList = async (newStreamers: Streamer[]) => {
-  const streamers = newStreamers.reduce((acc, streamer) => {
-    const data = followList.value.streamers[streamer.user_id]
+  for (const streamer of newStreamers) {
+    const target = follow.followList.streamers[streamer.user_id]
 
-    if (data === undefined) {
-      acc[streamer.user_id] = streamer
+    if (target === undefined) {
+      follow.followList.streamers[streamer.user_id] = streamer
+    } else {
+      follow.followList.streamers[streamer.user_id] = Object.assign(
+        follow.followList.streamers[streamer.user_id],
+        {
+          user_login: streamer.user_login,
+          user_id: streamer.user_id,
+          displayName: streamer.displayName,
+          profileImg: streamer.profileImg,
+          offlineImg: streamer.offlineImg
+        }
+      )
     }
-
-    return acc
-  }, {} as Streamers)
-
-  follow.followList.streamers = Object.assign(
-    follow.followList.streamers,
-    streamers
-  )
+  }
 
   const isUpdateSuccess = await follow.setFollowList()
 
