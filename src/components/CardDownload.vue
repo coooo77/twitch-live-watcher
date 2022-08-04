@@ -3,7 +3,10 @@
     class="cardDownload relative generalShadow overflow-hidden rounded-lg border border-themeColor4 bg-themeColor1 flex flex-col"
   >
     <div class="header h-0 pb-[56.25%] border-b bg-themeColor4 relative">
-      <div class="cardLayout absolute inset-0 flex">
+      <div
+        class="cardLayout absolute inset-0 flex cursor-pointer"
+        @click="openUrl(video.url)"
+      >
         <div
           :class="[
             video.status === 'Downloading' ? 'bg-themeColor5' : 'bg-themeColor4'
@@ -121,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import { openUrl } from '../util/common'
 import useDownload from '../store/download'
 import DownloadSystem from '../util/download'
 import { DownloadItem } from '../types/download'

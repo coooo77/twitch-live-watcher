@@ -80,3 +80,7 @@ export function killProcess(pid: number, signal: string | number = 'SIGTERM') {
     process.kill(-pid, signal)
   }
 }
+
+export function openUrl(url: string) {
+  ipcRenderer.send('open:url', { url })
+}

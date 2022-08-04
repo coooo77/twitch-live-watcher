@@ -10,7 +10,8 @@
     </div>
 
     <img
-      class="thumbnail w-full border-b border-themeColor4"
+      @click="openUrl(`https://www.twitch.tv/${stream.user_login}`)"
+      class="thumbnail w-full border-b border-themeColor4 cursor-pointer"
       :src="imgUrl"
       :alt="stream.id"
     />
@@ -70,9 +71,9 @@
 </template>
 
 <script setup lang="ts">
+import { openUrl } from '../util/common'
 import { FollowedStream } from '../api/user'
 import DownloadSystem from '../util/download'
-import useFollow from '../store/follow'
 
 const props = defineProps<{
   stream: FollowedStream
@@ -84,8 +85,6 @@ defineEmits<{
   (eventName: 'abortRecord', user_id: string): void
   (eventName: 'startRecord', user_id: string): void
 }>()
-
-const followList = useFollow()
 
 const isProcessing = ref(false)
 

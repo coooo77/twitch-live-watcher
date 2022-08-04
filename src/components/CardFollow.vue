@@ -3,7 +3,10 @@
     <div
       class="layout w-full grid grid-rows-[min-content,min-content] grid-cols-1 gap-1 border border-themeColor4 bg-themeColor2 rounded-lg generalShadow overflow-hidden"
     >
-      <div class="left relative overflow-hidden border-b border-themeColor4">
+      <div
+        class="left relative overflow-hidden border-b border-themeColor4 cursor-pointer"
+        @click="openUrl(`https://www.twitch.tv/${streamer.user_login}`)"
+      >
         <div class="profile w-full h-0 pb-[100%] relative">
           <div
             class="profileImg bg-cover absolute inset-0 transition-transform duration-300 hover:scale-125"
@@ -12,7 +15,9 @@
         </div>
       </div>
 
-      <div class="right px-4 pb-4 grid grid-rows-[min-content,min-content,1fr,1fr,1fr] grid-cols-1 gap-1">
+      <div
+        class="right px-4 pb-4 grid grid-rows-[min-content,min-content,1fr,1fr,1fr] grid-cols-1 gap-1"
+      >
         <div
           :title="displayName"
           class="userName text text-2xl text-center text-themeColor4 font-bold truncate"
@@ -36,16 +41,16 @@
         <div class="vod">
           <div class="controlText">VOD</div>
 
-          <el-switch :loading="isUpdatingStreamer" v-model="_vodEnableRecordVOD" />
+          <el-switch
+            :loading="isUpdatingStreamer"
+            v-model="_vodEnableRecordVOD"
+          />
         </div>
 
         <div class="notify">
           <div class="controlText">Notify</div>
 
-          <el-switch
-            :loading="isUpdatingStreamer"
-            v-model="_enableNotify"
-          />
+          <el-switch :loading="isUpdatingStreamer" v-model="_enableNotify" />
         </div>
 
         <div class="controllers grid grid-cols-2 gap-2">
@@ -74,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { openUrl } from '../util/common'
 import { Streamer } from '../types/streamer'
 
 type KeyToUpdate = 'enableRecord' | 'enableNotify' | 'vodEnableRecordVOD'

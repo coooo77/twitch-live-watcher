@@ -2,10 +2,11 @@
   <div
     class="cardSearch relative generalShadow overflow-hidden rounded-lg border border-themeColor4 bg-themeColor1 flex flex-col"
   >
-    <div
-      class="header h-0 pb-[56.25%] border-b bg-themeColor4 relative"
-    >
-      <div class="cardLayout absolute inset-0 flex">
+    <div class="header h-0 pb-[56.25%] border-b bg-themeColor4 relative">
+      <div
+        class="cardLayout absolute inset-0 flex cursor-pointer"
+        @click="openUrl(video.url)"
+      >
         <div class="views absolute top-2 left-2 text">
           {{ video.view_count }} views
         </div>
@@ -64,6 +65,7 @@
 <script setup lang="ts">
 import { IVod } from '../api/user'
 import { Icon } from '@iconify/vue'
+import { openUrl } from '../util/common'
 import { getUrlAndPublish } from '../composable/download'
 
 const iconSize = 30

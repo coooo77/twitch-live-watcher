@@ -10,12 +10,12 @@ import {
   OpenDialogSyncOptions,
   SaveDialogSyncOptions
 } from 'electron'
+import open from 'open'
 import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
 import * as dotenv from 'dotenv'
 import { release, homedir, userInfo } from 'os'
-import axios, { AxiosRequestConfig } from 'axios'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 
 const envPath = app.isPackaged
@@ -107,7 +107,7 @@ class MainProcess {
     } else {
       MainProcess.electronWindow.loadURL(MainProcess.url)
 
-      // MainProcess.electronWindow.webContents.openDevTools()
+      MainProcess.electronWindow.webContents.openDevTools()
     }
 
     // Test actively push message to the Electron-Renderer
@@ -233,6 +233,12 @@ class MainProcess {
       notify.on('click', () => window?.show())
 
       notify.show()
+    })
+
+    ipcMain.on('open:url', async (event, args) => {
+      if (!args.url) return
+
+      await open(args.url)
     })
   }
 
