@@ -173,13 +173,7 @@ const updateRecordSetting = async (
 }
 
 const getStreamers = async () => {
-  const streamerList = Array.from(new Set(searchValue.value.trim().split(';')))
-
-  const login = streamerList.filter((account) => {
-    const isNumber = new RegExp('^[0-9]+$')
-
-    return !isNumber.test(account)
-  })
+  const login = Array.from(new Set(searchValue.value.trim().split(';')))
 
   if (login.length === 0) return []
 

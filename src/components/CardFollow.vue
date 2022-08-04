@@ -36,7 +36,7 @@
         <div class="vod">
           <div class="controlText">VOD</div>
 
-          <el-switch :loading="isUpdatingStreamer" v-model="_enableNotify" />
+          <el-switch :loading="isUpdatingStreamer" v-model="_vodEnableRecordVOD" />
         </div>
 
         <div class="notify">
@@ -44,7 +44,7 @@
 
           <el-switch
             :loading="isUpdatingStreamer"
-            v-model="_vodEnableRecordVOD"
+            v-model="_enableNotify"
           />
         </div>
 
