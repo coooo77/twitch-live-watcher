@@ -25,35 +25,41 @@ export default class Download {
   }
 
   static async recordLiveStream(stream: FollowedStream) {
-    const follow = useFollow()
+    try {
+      const follow = useFollow()
 
-    const config = useConfig()
+      const config = useConfig()
 
-    const streamer = follow.followList.streamers[stream.user_id]
+      const streamer = follow.followList.streamers[stream.user_id]
 
-    const cmd = Download.getCmd(streamer, stream, config.userConfig)
+      const cmd = Download.getCmd(streamer, stream, config.userConfig)
 
-    let task: null | cp.ChildProcess = cp.exec(cmd)
+      let task: null | cp.ChildProcess = cp.exec(cmd)
 
-    task.on('spawn', async () => {
-      await Promise.all([
-        Download.addDownloadRecord(stream, task?.pid),
-        Download.updateStreamerStatus(stream, true)
-      ])
-    })
+      task.on('spawn', async () => {
+        await Promise.all([
+          Download.addDownloadRecord(stream, task?.pid),
+          Download.updateStreamerStatus(stream, true)
+        ])
+      })
 
-    task.on('close', async (code: number) => {
-      await Promise.all([
-        Download.removeDownloadRecord(stream),
-        Download.updateStreamerStatus(stream, false)
-      ])
+      task.on('close', async (code: number) => {
+        await Promise.all([
+          Download.removeDownloadRecord(stream),
+          Download.updateStreamerStatus(stream, false)
+        ])
 
-      task?.off('spawn', () => {})
+        task?.off('spawn', () => {})
 
-      task?.off('close', () => {})
+        task?.off('close', () => {})
 
-      task = null
-    })
+        task = null
+      })
+    } catch (error) {
+      FileSystem.errorHandler(error)
+
+      throw error
+    }
   }
 
   static getCmd(streamer: Streamer, stream: FollowedStream, config: Config) {
