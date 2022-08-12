@@ -110,7 +110,7 @@ export default class Download {
     return template
       .replace('{year}', String(targetTime.getFullYear()).padStart(2, '0'))
       .replace('{month}', String(targetTime.getMonth() + 1).padStart(2, '0'))
-      .replace('{day}', String(targetTime.getDay()).padStart(2, '0'))
+      .replace('{day}', String(targetTime.getDate()).padStart(2, '0'))
       .replace('{hr}', String(targetTime.getHours()).padStart(2, '0'))
       .replace('{min}', String(targetTime.getMinutes()).padStart(2, '0'))
       .replace('{sec}', String(targetTime.getSeconds()).padStart(2, '0'))
@@ -248,7 +248,7 @@ export default class Download {
 
         const isExpired = timeZone >= timeNow
 
-        const day = isExpired ? timeNow.getDay() + 1 : timeNow.getDay()
+        const day = isExpired ? timeNow.getDate() + 1 : timeNow.getDate()
 
         const hour = timeZone.getHours()
 

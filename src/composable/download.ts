@@ -10,7 +10,7 @@ export function getUrlAndPublish(url: string, publish: string) {
 
     const month = String(time.getMonth() + 1).padStart(2, '0')
 
-    const day = String(time.getDay()).padStart(2, '0')
+    const day = String(time.getDate()).padStart(2, '0')
 
     const hour = String(time.getHours()).padStart(2, '0')
 
