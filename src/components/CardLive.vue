@@ -26,8 +26,11 @@
         {{ stream.title }}
       </div>
 
-      <div class="userName truncate col-span-full font-bold text-themeColor4">
-        {{ stream.user_name || stream.user_login }}
+      <div
+        :title="liveCardHost"
+        class="userName truncate col-span-full font-bold text-themeColor4 whitespace-nowrap"
+      >
+        {{ liveCardHost }}
       </div>
 
       <div class="tag truncate font-bold text-themeColor4">
@@ -92,6 +95,12 @@ const imgUrl = computed(() => {
   return props.stream.thumbnail_url
     .replace('{width}', '320')
     .replace('{height}', '180')
+})
+
+const liveCardHost = computed(() => {
+  const { user_name, user_login } = props.stream
+
+  return `${user_name || user_login} (${user_login})`
 })
 
 const startRecord = async () => {

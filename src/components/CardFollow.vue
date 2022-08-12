@@ -22,7 +22,7 @@
           :title="displayName"
           class="userName text text-2xl text-center text-themeColor4 font-bold truncate"
         >
-          {{ displayName }}
+          {{ displayName || user_login }}
         </div>
 
         <div
