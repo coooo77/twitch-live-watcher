@@ -87,6 +87,7 @@ export default class Download {
     const startTime = new Date().toJSON()
 
     const string = template
+      .replace('{streamer_id}', stream.user_id)
       .replace('{id}', stream.id)
       .replace('{streamer}', stream.user_login)
       .replace('{title}', stream.title)
@@ -96,6 +97,7 @@ export default class Download {
 
   static getVodFilename(template: string, vod: IVod) {
     const string = template
+      .replace('{streamer_id}', vod.user_id)
       .replace('{id}', vod.id)
       .replace('{streamer}', vod.user_login)
       .replace('{title}', vod.title)

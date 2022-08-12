@@ -186,6 +186,7 @@
                             property="description"
                             label="Description"
                           />
+                          
                           <el-table-column
                             width="auto"
                             property="example"
@@ -205,7 +206,30 @@
                   />
 
                   <template #popIcon>
-                    <Explanation :content="record.fileNameTemplate" />
+                    <Explanation :content="record.fileNameTemplate">
+                      <template #popContent>
+                        <el-table :data="wildcardExplanation">
+                          <!-- prettier-ignore -->
+                          <el-table-column
+                             width="auto"
+                             property="wildcard"
+                             label="Wildcard"
+                           />
+
+                          <el-table-column
+                            width="auto"
+                            property="description"
+                            label="Description"
+                          />
+
+                          <el-table-column
+                            width="auto"
+                            property="example"
+                            label="Example"
+                          />
+                        </el-table>
+                      </template>
+                    </Explanation>
                   </template>
                 </InputRow>
 

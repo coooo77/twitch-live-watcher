@@ -48,11 +48,11 @@ export default class ConfigSystem {
     vodCountDownInMinutes: 30,
     vodTimeZone: new Date(2022, 1, 10, 3, 0).toISOString(),
     vodFileNameTemplate:
-      '{streamer}_TwitchVOD_id_{id}_{year}{month}{day}_{hr}{min}{sec}_{duration}',
+      '{streamer}_{streamer_id}_TwitchVOD_id_{id}_{year}{month}{day}_{hr}{min}{sec}_{duration}',
     checkStreamContentTypeEnable: false,
     checkStreamContentTypeTargetGameNames: 'Art;Just Chatting;',
     fileNameTemplate:
-      '{streamer}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
+      '{streamer}_{streamer_id}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
   }
 
   static explanationRecordSetting = {
@@ -111,6 +111,11 @@ export default class ConfigSystem {
       wildcard: '{id}',
       description: 'Twitch Video ID',
       example: '335921245'
+    },
+    {
+      wildcard: '{streamer_id}',
+      description: 'streamer id',
+      example: '51163862'
     },
     {
       wildcard: '{streamer}',
