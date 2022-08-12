@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // import './samples/node-api'
 import { storeToRefs } from 'pinia'
+import { ipcRenderer } from 'electron'
 import useFollow from './store/follow'
 import useConfig from './store/config'
 import useDownload from './store/download'
@@ -17,6 +18,8 @@ const follow = useFollow()
 const download = useDownload()
 
 const { isWatchOnline } = storeToRefs(follow)
+
+const openDev = () => ipcRenderer.send('open:devTool')
 
 watch(isWatchOnline, (newVal, oldVal) => {
   if (newVal) {
@@ -76,6 +79,7 @@ window.onbeforeunload = (event) => {
     <div class="pageView grow grid grid-rows-[min-content,1fr]">
       <div
         class="pageTitle select-none border-b-[9px] text-[50px] font-bold text-themeColor4 leading-[60px] mb-4 sm:text-[72px] sm:leading-[90px]"
+        @click.ctrl.shift="openDev"
       >
         {{ route.meta.title }}
       </div>

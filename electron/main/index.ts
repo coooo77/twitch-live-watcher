@@ -44,6 +44,20 @@ class MainProcess {
 
   static indexHtml = join(MainProcess.ROOT_PATH.dist, 'index.html')
 
+  static isDevToolOpen = false
+
+  static openDevTool() {
+    if (!MainProcess.electronWindow) return
+
+    if (MainProcess.isDevToolOpen) {
+      MainProcess.electronWindow.webContents.closeDevTools()
+    } else {
+      MainProcess.electronWindow.webContents.openDevTools()
+    }
+
+    MainProcess.isDevToolOpen = !MainProcess.isDevToolOpen
+  }
+
   static beforeInit() {
     // Disable GPU Acceleration for Windows 7
     if (release().startsWith('6.1')) {
@@ -103,11 +117,11 @@ class MainProcess {
     if (app.isPackaged) {
       MainProcess.electronWindow.loadFile(MainProcess.indexHtml)
 
-      // MainProcess.electronWindow.webContents.openDevTools()
+      // MainProcess.openDevTool()
     } else {
       MainProcess.electronWindow.loadURL(MainProcess.url)
 
-      MainProcess.electronWindow.webContents.openDevTools()
+      MainProcess.openDevTool()
     }
 
     // Test actively push message to the Electron-Renderer
@@ -240,6 +254,10 @@ class MainProcess {
 
       await open(args.url)
     })
+
+    ipcMain.on('open:devTool', async (event, args) => {
+      MainProcess.openDevTool()
+    })
   }
 
   static listenElectronWindow(browserWindow: BrowserWindow) {
@@ -308,7 +326,7 @@ class AuthProcess {
 
     AuthProcess.authWindow.loadURL(AuthService.authenticationURL())
 
-    AuthProcess.authWindow.webContents.openDevTools()
+    // AuthProcess.authWindow.webContents.openDevTools()
 
     const {
       session: { webRequest }
