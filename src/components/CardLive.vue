@@ -100,7 +100,9 @@ const imgUrl = computed(() => {
 const liveCardHost = computed(() => {
   const { user_name, user_login } = props.stream
 
-  return `${user_name || user_login} (${user_login})`
+  const isSame = user_name.toLowerCase() === user_login.toLowerCase()
+
+  return isSame ? user_name : `${user_name} (${user_login})`
 })
 
 const startRecord = async () => {
