@@ -10,7 +10,7 @@
         <div class="profile w-full h-0 pb-[100%] relative">
           <div
             class="profileImg bg-cover absolute inset-0 transition-transform duration-300 hover:scale-125"
-            :style="{ 'background-image': `url(${profileImg})` }"
+            :style="{ 'background-image': `url(${streamerImage})` }"
           />
         </div>
       </div>
@@ -81,6 +81,7 @@
 <script setup lang="ts">
 import { openUrl } from '../util/common'
 import { Streamer } from '../types/streamer'
+import { getUsers, GetUsersResponse } from '../api/user'
 
 type KeyToUpdate = 'enableRecord' | 'enableNotify' | 'vodEnableRecordVOD'
 
@@ -88,6 +89,7 @@ const emit = defineEmits<{
   (eventName: 'editStreamer'): void
   (eventName: 'deleteStreamer'): void
   (eventName: 'updateStreamer', value: KeyToUpdate): void
+  (eventName: 'updateProfile', value: GetUsersResponse): void
 }>()
 
 const props = defineProps<{
@@ -96,6 +98,38 @@ const props = defineProps<{
 }>()
 
 const { profileImg, displayName, user_login } = toRefs(props.streamer)
+
+const streamerImage = ref('')
+
+const getProfileImg = (): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+
+    img.onload = () => resolve(profileImg.value)
+
+    img.onerror = async () => {
+      const params = { login: user_login.value }
+
+      try {
+        const { data } = await getUsers(params)
+
+        if (data.length === 0) {
+          throw Error('load profile image failed: ' + user_login)
+        }
+
+        emit('updateProfile', data[0])
+
+        resolve(data[0].profile_image_url)
+      } catch (error) {
+        console.error(error)
+
+        resolve(profileImg.value)
+      }
+    }
+
+    img.src = profileImg.value
+  })
+}
 
 const _enableRecord = computed({
   get() {
@@ -122,6 +156,10 @@ const _vodEnableRecordVOD = computed({
   set(value) {
     emit('updateStreamer', 'vodEnableRecordVOD')
   }
+})
+
+onBeforeMount(async () => {
+  streamerImage.value = await getProfileImg()
 })
 </script>
 

@@ -27,6 +27,7 @@
               :key="streamer.user_id"
               :streamer="streamer"
               :isUpdatingStreamer="isUpdatingStreamer"
+              @update-profile="updateStreamerProfileImg"
               @editStreamer="openEditDialog(streamer.user_id)"
               @deleteStreamer="deleteStreamer(streamer.user_id)"
               @updateStreamer="updateRecordSetting(streamer.user_id, $event)"
@@ -184,9 +185,7 @@ const getStreamers = async () => {
   return data
 }
 
-const transformStreamerData = async (
-  streamers: GetUsersResponse[]
-): Promise<Streamer[]> => {
+const transformStreamerData = (streamers: GetUsersResponse[]): Streamer[] => {
   return streamers.map((streamer) => ({
     user_login: streamer.login,
     user_id: streamer.id,
@@ -235,7 +234,7 @@ const addStreamerToFollowList = async () => {
 
     if (streamers.length === 0) return notify.send('No streamers were found')
 
-    const newStreamers = await transformStreamerData(streamers)
+    const newStreamers = transformStreamerData(streamers)
 
     await updateFollowList(newStreamers)
   } catch (error) {
@@ -255,6 +254,24 @@ const importFollowList = async () => await importJSON(assignFollowList)
 
 const exportFollowList = async () =>
   await exportJSON(followList.value, 'followList', 'Export Follow List')
+
+const updateStreamerProfileImg = async (streamer: GetUsersResponse) => {
+  const { id, display_name, profile_image_url, offline_image_url } = streamer
+
+  if (!follow.followList.streamers[id]) {
+    throw Error(
+      `Can not find streamer to update, id: ${id}, name: ${display_name}`
+    )
+  }
+
+  follow.followList.streamers[id].displayName = display_name
+
+  follow.followList.streamers[id].profileImg = profile_image_url
+
+  follow.followList.streamers[id].offlineImg = offline_image_url
+
+  await follow.setFollowList()
+}
 </script>
 
 <style scoped>
