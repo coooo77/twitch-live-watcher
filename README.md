@@ -27,7 +27,7 @@ Download videos on Twitch.
 
 ## Installation
 
-[Installer](https://github.com/coSevenSeven/twitch-live-watcher/releases/tag/v1.0.0)
+[Installer](https://github.com/coSevenSeven/twitch-live-watcher/releases)
 
 ## Configuration
 
