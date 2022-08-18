@@ -200,6 +200,7 @@ export default defineStore('followList', {
 
         const {
           enableRecord,
+          vodEnableRecordVOD,
           checkStreamContentTypeEnable,
           checkStreamContentTypeTargetGameNames
         } = streamer.recordSetting
@@ -222,14 +223,21 @@ export default defineStore('followList', {
 
         const isStopRecordDueToVod = this.checkVodToStopRecord(streamer)
 
-        if (
+        const isUnableToRecord =
           isRecording ||
           !enableRecord ||
           !isValidGameName ||
           isStopRecordDueToVod ||
           isReachDownloadLimit
-        )
-          continue
+
+        if (isUnableToRecord) continue
+
+        const { onlineVodID } = this.followList.streamers[user_id].status
+
+        const haveToCheckVodID =
+          !onlineVodID && vodEnableRecordVOD && isValidGameName
+
+        if (haveToCheckVodID) await this.updateVodID(user_id)
 
         await DownloadSystem.recordLiveStream(stream)
       }
@@ -254,15 +262,8 @@ export default defineStore('followList', {
       this.haveToUpdateFollowList = true
 
       if (vodEnableRecordVOD && isValidTag) {
-        const vod = await getVideos({ user_id })
-
-        const lastVOD = vod.data[0]
-
-        const haveVod = !!(lastVOD?.thumbnail_url === '')
-
-        if (haveVod) {
-          this.followList.streamers[user_id].status.onlineVodID = lastVOD.id
-        }
+        // FIXME: online without VOD, but actually it has
+        await this.updateVodID(user_id)
       }
 
       this.followList.onlineList[user_id] = user_id
@@ -294,6 +295,17 @@ export default defineStore('followList', {
       const isStopRecordLive = noVodAndStopRecord || haveVodAndStopRecord
 
       return isStopRecordLive
+    },
+    async updateVodID(user_id: string) {
+      const vod = await getVideos({ user_id })
+
+      const lastVOD = vod.data[0]
+
+      const haveVod = !!(lastVOD?.thumbnail_url === '')
+
+      if (haveVod) {
+        this.followList.streamers[user_id].status.onlineVodID = lastVOD.id
+      }
     }
   }
 })
