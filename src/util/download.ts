@@ -5,9 +5,9 @@ import FileSystem from './file'
 import { killProcess } from './common'
 import useConfig from '../store/config'
 import useFollow from '../store/follow'
-import { Config } from 'src/types/config'
 import useDownload from '../store/download'
 import { Streamer } from '../types/streamer'
+import { Config, GeneralSetting } from '../types/config'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
@@ -32,7 +32,13 @@ export default class Download {
 
   static async recordLiveStream(stream: FollowedStream, retry = 0) {
     try {
-      const { cmd, filePath } = Download.getCmd(stream)
+      const config = useConfig()
+
+      const { general } = config.userConfig
+
+      FileSystem.makeDirIfNotExist(general.dirToSaveRecord)
+
+      const { cmd, filePath } = Download.getCmd(stream, general)
 
       let task: null | cp.ChildProcess = cp.exec(cmd)
 
@@ -82,12 +88,8 @@ export default class Download {
     }
   }
 
-  static getCmd(stream: FollowedStream) {
+  static getCmd(stream: FollowedStream, general: GeneralSetting) {
     const follow = useFollow()
-
-    const config = useConfig()
-
-    const { general } = config.userConfig
 
     const streamer = follow.followList.streamers[stream.user_id]
 
@@ -376,6 +378,8 @@ export default class Download {
     const { userConfig } = useConfig()
 
     const baseDir = item.dirToSaveRecord || userConfig.general.dirToSaveRecord
+
+    FileSystem.makeDirIfNotExist(baseDir)
 
     const filePath = path.join(baseDir, `${item.filename}.ts`)
 

@@ -1,15 +1,20 @@
 import os from 'os'
 import path from 'path'
+import FileSystem from './file'
 import { RecordSetting } from 'src/types/streamer'
 import { Config, GeneralSetting, VodSetting } from 'src/types/config'
 
 export default class ConfigSystem {
   static filename = 'configuration'
 
+  static defaultDir = path.join(
+    path.parse(os.homedir()).root,
+    'twitch-live-watcher'
+  )
+
   static defaultGeneralSetting: GeneralSetting = {
     checkStreamInterval: 30,
-    // TODO: get download folder
-    dirToSaveRecord: path.parse(os.homedir()).root,
+    dirToSaveRecord: FileSystem.ROOT_PATH || ConfigSystem.defaultDir,
     numOfDownloadLimit: 0,
     showDownloadCmd: false
   }
