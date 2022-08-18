@@ -11,8 +11,14 @@ import { Streamer } from '../types/streamer'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
+interface LiveCheckTimer {
+  [key: FollowedStream['user_id']]: NodeJS.Timeout
+}
+
 export default class Download {
   static filename = 'download'
+
+  static liveCheckTimer: LiveCheckTimer = {}
 
   static defaultDownloadList: DownloadList = {
     liveStreams: {},
@@ -24,19 +30,33 @@ export default class Download {
     }
   }
 
-  static async recordLiveStream(stream: FollowedStream) {
+  static async recordLiveStream(stream: FollowedStream, retry = 0) {
     try {
-      const follow = useFollow()
-
-      const config = useConfig()
-
-      const streamer = follow.followList.streamers[stream.user_id]
-
-      const cmd = Download.getCmd(streamer, stream, config.userConfig)
+      const { cmd, filePath } = Download.getCmd(stream)
 
       let task: null | cp.ChildProcess = cp.exec(cmd)
 
       task.on('spawn', async () => {
+        // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
+        Download.liveCheckTimer[stream.user_id] = setTimeout(async () => {
+          Download.clearLiveCheckTimer(stream.user_id)
+
+          if (fs.existsSync(filePath)) return
+
+          if (retry === 5) {
+            const payload = {
+              stream,
+              message: 'reach max retry limit'
+            }
+
+            throw Error(JSON.stringify(payload))
+          }
+
+          await Download.abortLiveRecord(stream)
+
+          await Download.recordLiveStream(stream, ++retry)
+        }, 60 * 1000)
+
         await Promise.all([
           Download.addDownloadRecord(stream, task?.pid),
           Download.updateStreamerStatus(stream, true)
@@ -62,7 +82,15 @@ export default class Download {
     }
   }
 
-  static getCmd(streamer: Streamer, stream: FollowedStream, config: Config) {
+  static getCmd(stream: FollowedStream) {
+    const follow = useFollow()
+
+    const config = useConfig()
+
+    const { general } = config.userConfig
+
+    const streamer = follow.followList.streamers[stream.user_id]
+
     const { user_login, recordSetting } = streamer
 
     const sourceUrl = `https://www.twitch.tv/${user_login}`
@@ -72,11 +100,13 @@ export default class Download {
       stream
     )
 
-    const filePath = path.join(config.general.dirToSaveRecord, `${filename}.ts`)
+    const filePath = path.join(general.dirToSaveRecord, `${filename}.ts`)
 
-    const showCmd = `${config.general.showDownloadCmd ? 'start ' : ''}`
+    const showCmd = `${general.showDownloadCmd ? 'start ' : ''}`
 
-    return `${showCmd}streamlink ${sourceUrl} best -o ${filePath}`
+    const cmd = `${showCmd}streamlink --twitch-disable-hosting ${sourceUrl} best -o ${filePath}`
+
+    return { cmd, filePath }
   }
 
   static checkStatus(limit: number, downloadList: DownloadList) {
@@ -170,6 +200,8 @@ export default class Download {
   }
 
   static async abortLiveRecord(stream: FollowedStream) {
+    Download.clearLiveCheckTimer(stream.user_id)
+
     const follow = useFollow()
 
     const download = useDownload()
@@ -518,5 +550,15 @@ export default class Download {
     download.downloadList.vodList[from].splice(index, 1)
 
     await download.setDownloadList()
+  }
+
+  static clearLiveCheckTimer(user_id: string) {
+    clearTimeout(Download.liveCheckTimer[user_id])
+
+    delete Download.liveCheckTimer[user_id]
+  }
+
+  static clearLiveCheckTimers() {
+    Object.keys(Download.liveCheckTimer).forEach(Download.clearLiveCheckTimer)
   }
 }
