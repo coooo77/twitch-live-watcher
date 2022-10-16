@@ -19,13 +19,9 @@ import { useNotification } from '../store/notification'
 
 const notify = useNotification()
 
-const isShow = ref(Boolean(notify.message))
+const isShow = computed(() => Boolean(notify.message))
 
 const isWarnType = toRef(notify, 'isWarnType')
-
-notify.$subscribe((mutation, state) => {
-  isShow.value = Boolean(state.message)
-})
 </script>
 
 <style scoped>
