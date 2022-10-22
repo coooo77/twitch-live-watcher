@@ -1,5 +1,5 @@
 import cp from 'child_process'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, shell } from 'electron'
 
 export async function getDirPath() {
   const res = (await ipcRenderer.invoke('showOpenDialog', {
@@ -82,5 +82,5 @@ export function killProcess(pid: number, signal: string | number = 'SIGTERM') {
 }
 
 export function openUrl(url: string) {
-  ipcRenderer.send('open:url', { url })
+  shell.openExternal(url)
 }

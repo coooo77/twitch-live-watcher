@@ -10,7 +10,6 @@ import {
   OpenDialogSyncOptions,
   SaveDialogSyncOptions
 } from 'electron'
-import open from 'open'
 import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
@@ -247,12 +246,6 @@ class MainProcess {
       notify.on('click', () => window?.show())
 
       notify.show()
-    })
-
-    ipcMain.on('open:url', async (event, args) => {
-      if (!args.url) return
-
-      await open(args.url)
     })
 
     ipcMain.on('open:devTool', async (event, args) => {
