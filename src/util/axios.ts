@@ -36,11 +36,16 @@ api.interceptors.response.use(
 
       await AuthService.refreshTokens()
 
-      axios.defaults.headers.common['Authorization'] = `Bearer ${AuthService.accessToken}`
+      axios.defaults.headers.common[
+        'Authorization'
+      ] = `Bearer ${AuthService.accessToken}`
 
       return api(originalRequest)
-    } else {
-      if (error.response?.status !== 401) FileSystem.errorHandler(error)
+    } else if (
+      error.code === 'ECONNABORTED' ||
+      error.response?.status !== 401
+    ) {
+      FileSystem.errorHandler(error)
     }
 
     return Promise.reject(error)

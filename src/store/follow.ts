@@ -111,11 +111,6 @@ export default defineStore('followList', {
 
       try {
         await this.updateOnlineList()
-
-        this.checkTimer = window.setTimeout(
-          this.setCheckOnlineTimer,
-          checkStreamInterval * 1000
-        )
       } catch (error) {
         const err = error as { message: string }
 
@@ -124,10 +119,11 @@ export default defineStore('followList', {
         const notify = useNotification()
 
         notify.warn(err.message || 'Unknown error')
-
-        this.isWatchOnline = false
-
-        await this.clearTimer()
+      } finally {
+        this.checkTimer = window.setTimeout(
+          this.setCheckOnlineTimer,
+          checkStreamInterval * 1000
+        )
       }
     },
     async clearTimer() {

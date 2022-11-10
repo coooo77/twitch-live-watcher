@@ -42,45 +42,53 @@ export default class Download {
 
       let task: null | cp.ChildProcess = cp.exec(cmd)
 
-      task.on('spawn', async () => {
-        // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
-        Download.liveCheckTimer[stream.user_id] = setTimeout(async () => {
-          Download.clearLiveCheckTimer(stream.user_id)
+      // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
+      Download.liveCheckTimer[stream.user_id] = setTimeout(async () => {
+        Download.clearLiveCheckTimer(stream.user_id)
 
-          if (fs.existsSync(filePath)) return
+        const follow = useFollow()
 
-          if (retry === 5) {
-            const payload = {
-              stream,
-              message: 'reach max retry limit'
-            }
+        const isOffline = !follow.followList.onlineList[stream.user_id]
 
-            throw Error(JSON.stringify(payload))
+        if (isOffline || fs.existsSync(filePath)) return
+
+        if (retry === 5) {
+          const payload = {
+            stream,
+            message: 'reach max retry limit'
           }
 
-          await Download.abortLiveRecord(stream)
+          throw Error(JSON.stringify(payload))
+        }
 
-          await Download.recordLiveStream(stream, ++retry)
-        }, 60 * 1000)
+        await Download.abortLiveRecord(stream)
 
+        await Download.recordLiveStream(stream, ++retry)
+      }, 60 * 1000)
+
+      const spawnFn = async () => {
         await Promise.all([
           Download.addDownloadRecord(stream, task?.pid),
           Download.updateStreamerStatus(stream, true)
         ])
-      })
+      }
 
-      task.on('close', async (code: number) => {
+      const closeFn = async () => {
         await Promise.all([
           Download.removeDownloadRecord(stream),
           Download.updateStreamerStatus(stream, false)
         ])
 
-        task?.off('spawn', () => {})
+        task?.off('spawn', spawnFn)
 
-        task?.off('close', () => {})
+        task?.off('close', closeFn)
 
         task = null
-      })
+      }
+
+      task.on('spawn', spawnFn)
+
+      task.on('close', closeFn)
     } catch (error) {
       FileSystem.errorHandler(error)
 
