@@ -1,6 +1,6 @@
 {
   "name": "twitch-live-watcher",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/electron/main/index.js",
   "description": "Record online videos and VOD from Twitch",
   "author": "coSevenSeven <cosevenseven@gmail.com>",

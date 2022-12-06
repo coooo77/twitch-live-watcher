@@ -297,7 +297,10 @@ export default defineStore('followList', {
 
       const lastVOD = vod.data[0]
 
-      const haveVod = !!(lastVOD?.thumbnail_url === '')
+      const haveVod = !!(
+        lastVOD?.thumbnail_url === '' ||
+        lastVOD?.thumbnail_url.includes('404_processing')
+      )
 
       if (haveVod) {
         this.followList.streamers[user_id].status.onlineVodID = lastVOD.id
