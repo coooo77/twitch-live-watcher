@@ -22,15 +22,15 @@ const { isWatchOnline } = storeToRefs(follow)
 const openDev = () => ipcRenderer.send('open:devTool')
 
 watch(isWatchOnline, (newVal, oldVal) => {
-  if (newVal) {
-    follow.setCheckOnlineTimer()
+  follow.clearTimer()
 
-    download.setCheckDownloadTimer()
-  } else {
-    follow.clearTimer()
+  download.clearTimer()
 
-    download.clearTimer()
-  }
+  if (!newVal) return
+
+  follow.setCheckOnlineTimer()
+
+  download.setCheckDownloadTimer()
 })
 
 onMounted(async () => {
