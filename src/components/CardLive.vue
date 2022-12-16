@@ -82,6 +82,7 @@ const props = defineProps<{
   stream: FollowedStream
   isRecording: boolean
   hideAbortBtn: boolean
+  upDateTime: Date
 }>()
 
 defineEmits<{
@@ -95,6 +96,7 @@ const imgUrl = computed(() => {
   return props.stream.thumbnail_url
     .replace('{width}', '320')
     .replace('{height}', '180')
+    .concat(`?cache=${+props.upDateTime}`)
 })
 
 const liveCardHost = computed(() => {

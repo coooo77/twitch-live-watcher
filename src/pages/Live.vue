@@ -36,6 +36,7 @@
               :stream="stream"
               :isRecording="isRecording(stream.user_id)"
               :hideAbortBtn="hideAbortBtn"
+              :up-date-time="visitTime"
             />
           </div>
 
@@ -67,6 +68,8 @@ const hideObserver = ref(true)
 
 const hideAbortBtn = ref(false)
 
+const visitTime = ref(new Date())
+
 const startOrStopApp = (value: boolean) => {
   follow.isWatchOnline = value
 }
@@ -74,6 +77,20 @@ const startOrStopApp = (value: boolean) => {
 const isRecording = (user_id: string) => {
   return follow.followList.streamers[user_id]?.status.isRecording || false
 }
+
+const checkVisitTime = () => {
+  const timeNow = new Date()
+  const isOver1Min = timeNow.getTime() - visitTime.value.getTime() > 60 * 1000
+  const isVisible = document.visibilityState === 'visible'
+
+  if (isOver1Min && isVisible) visitTime.value = timeNow
+}
+
+document.addEventListener('visibilitychange', checkVisitTime)
+
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', checkVisitTime)
+})
 
 onMounted(async () => {
   try {
