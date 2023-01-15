@@ -50,12 +50,13 @@ export default defineStore('followList', {
     },
     async setFollowList(followList?: FollowList) {
       try {
-        if (!followList) {
-          await ModelSystem.setFollowList(this.followList)
-        } else {
+        if (followList) {
           await ModelSystem.setFollowList(followList)
 
           this.followList = followList
+        } else if (Object.keys(this.followList.streamers)) {
+          // followList may be empty
+          await ModelSystem.setFollowList(this.followList)
         }
 
         return true
@@ -174,6 +175,8 @@ export default defineStore('followList', {
         delete this.followList.onlineList[user_id]
 
         this.followList.streamers[user_id].status.isOnline = false
+
+        this.followList.streamers[user_id].status.isRecording = false
 
         if (this.followList.streamers[user_id].status.onlineVodID) {
           await DownloadSystem.updateVodList(user_id)

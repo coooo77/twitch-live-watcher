@@ -7,10 +7,7 @@ import { Config, GeneralSetting, VodSetting } from 'src/types/config'
 export default class ConfigSystem {
   static filename = 'configuration'
 
-  static defaultDir = path.join(
-    path.parse(os.homedir()).root,
-    'twitch-live-watcher'
-  )
+  static defaultDir = path.join(os.homedir(), 'twitch-live-watcher')
 
   static defaultGeneralSetting: GeneralSetting = {
     checkStreamInterval: 30,
