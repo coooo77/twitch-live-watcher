@@ -82,8 +82,6 @@ export default defineStore('download', {
     async clearTimer() {
       if (this.checkTimer !== null) clearTimeout(this.checkTimer)
 
-      DownloadSystem.clearLiveCheckTimers()
-
       await DownloadSystem.abortAllOngoingVod()
     },
     async handleDownloadVOD() {

@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import Helper from './helper'
 import cp from 'child_process'
 import FileSystem from './file'
 import { killProcess } from './common'
@@ -11,14 +12,8 @@ import { Config, GeneralSetting } from '../types/config'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
-interface LiveCheckTimer {
-  [key: FollowedStream['user_id']]: NodeJS.Timeout
-}
-
 export default class Download {
   static filename = 'download'
-
-  static liveCheckTimer: LiveCheckTimer = {}
 
   static defaultDownloadList: DownloadList = {
     liveStreams: {},
@@ -32,39 +27,28 @@ export default class Download {
 
   static async recordLiveStream(stream: FollowedStream, retry = 0) {
     try {
+      const follow = useFollow()
       const config = useConfig()
 
-      const { general } = config.userConfig
+      const {
+        general: { dirToSaveRecord, showDownloadCmd }
+      } = config.userConfig
+      const { user_login, recordSetting } =
+        follow.followList.streamers[stream.user_id]
 
-      FileSystem.makeDirIfNotExist(general.dirToSaveRecord)
+      const filename = Download.getStreamFilename(
+        recordSetting.fileNameTemplate,
+        stream
+      )
+      const filePath = path.join(dirToSaveRecord, `${filename}.ts`)
+      const sourceUrl = `https://www.twitch.tv/${user_login}`
 
-      const { cmd, filePath } = Download.getCmd(stream, general)
+      const cmd = Download.getDownloadCmd(sourceUrl, filePath)
 
-      let task: null | cp.ChildProcess = cp.exec(cmd)
-
-      // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
-      Download.liveCheckTimer[stream.user_id] = setTimeout(async () => {
-        Download.clearLiveCheckTimer(stream.user_id)
-
-        const follow = useFollow()
-
-        const isOffline = !follow.followList.onlineList[stream.user_id]
-
-        if (isOffline || fs.existsSync(filePath)) return
-
-        if (retry === 5) {
-          const payload = {
-            stream,
-            message: 'reach max retry limit'
-          }
-
-          throw Error(JSON.stringify(payload))
-        }
-
-        await Download.abortLiveRecord(stream)
-
-        await Download.recordLiveStream(stream, ++retry)
-      }, 60 * 1000)
+      let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
+        detached: showDownloadCmd,
+        shell: true
+      })
 
       const spawnFn = async () => {
         await Promise.all([
@@ -73,17 +57,37 @@ export default class Download {
         ])
       }
 
-      const closeFn = async () => {
-        await Promise.all([
-          Download.removeDownloadRecord(stream),
-          Download.updateStreamerStatus(stream, false)
-        ])
-
+      // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
+      const closeFn = async (code: number | null) => {
         task?.off('spawn', spawnFn)
 
         task?.off('close', closeFn)
 
         task = null
+
+        const follow = useFollow()
+
+        const isOffline = !follow.followList.onlineList[stream.user_id]
+
+        if (isOffline || fs.existsSync(filePath) || code === 0) {
+          await Promise.all([
+            Download.removeDownloadRecord(stream),
+            Download.updateStreamerStatus(stream, false)
+          ])
+        } else if (retry === 5) {
+          const payload = {
+            stream,
+            message: 'reach max retry limit'
+          }
+
+          throw Error(JSON.stringify(payload))
+        } else {
+          await Helper.wait(60)
+
+          await Download.abortLiveRecord(stream)
+
+          await Download.recordLiveStream(stream, ++retry)
+        }
       }
 
       task.on('spawn', spawnFn)
@@ -96,27 +100,12 @@ export default class Download {
     }
   }
 
-  static getCmd(stream: FollowedStream, general: GeneralSetting) {
-    const follow = useFollow()
+  static getDownloadCmd(sourceUrl: string, filePath: string, isLive = true) {
+    const { dir } = path.parse(filePath)
+    FileSystem.makeDirIfNotExist(dir)
 
-    const streamer = follow.followList.streamers[stream.user_id]
-
-    const { user_login, recordSetting } = streamer
-
-    const sourceUrl = `https://www.twitch.tv/${user_login}`
-
-    const filename = Download.getStreamFilename(
-      recordSetting.fileNameTemplate,
-      stream
-    )
-
-    const filePath = path.join(general.dirToSaveRecord, `${filename}.ts`)
-
-    const showCmd = `${general.showDownloadCmd ? 'start ' : ''}`
-
-    const cmd = `${showCmd}streamlink --twitch-disable-hosting ${sourceUrl} best -o ${filePath}`
-
-    return { cmd, filePath }
+    const liveSetting = isLive ? `--twitch-disable-hosting ` : ''
+    return `streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
   }
 
   static checkStatus(limit: number, downloadList: DownloadList) {
@@ -210,8 +199,6 @@ export default class Download {
   }
 
   static async abortLiveRecord(stream: FollowedStream) {
-    Download.clearLiveCheckTimer(stream.user_id)
-
     const follow = useFollow()
 
     const download = useDownload()
@@ -385,26 +372,31 @@ export default class Download {
   static async recordVod(item: DownloadItem) {
     const { userConfig } = useConfig()
 
-    const baseDir = item.dirToSaveRecord || userConfig.general.dirToSaveRecord
+    const {
+      general: { dirToSaveRecord, showDownloadCmd }
+    } = userConfig
 
-    FileSystem.makeDirIfNotExist(baseDir)
+    const baseDir = item.dirToSaveRecord || dirToSaveRecord
 
     const filePath = path.join(baseDir, `${item.filename}.ts`)
 
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
 
-    const cmd = Download.getVodCmd(item, filePath, userConfig)
+    const cmd = Download.getDownloadCmd(item.url, filePath, false)
 
-    let task: null | cp.ChildProcess = cp.exec(cmd)
-
-    task.on('spawn', async () => {
-      await Download.updateOngoing(item, task?.pid)
+    let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
+      detached: showDownloadCmd,
+      shell: true
     })
 
-    task.on('close', async (code: number) => {
-      task?.off('spawn', () => {})
+    const spawnFn = async () => {
+      await Download.updateOngoing(item, task?.pid)
+    }
 
-      task?.off('close', () => {})
+    const closeFn = async (code: number | null) =>  {
+      task?.off('spawn', spawnFn)
+
+      task?.off('close', closeFn)
 
       task = null
 
@@ -419,7 +411,11 @@ export default class Download {
       } else {
         await Download.handleFailure(item)
       }
-    })
+    }
+    
+    task.on('spawn', spawnFn)
+
+    task.on('close', closeFn)
   }
 
   static async handleSuccess(item: DownloadItem) {
@@ -452,14 +448,6 @@ export default class Download {
 
       await download.moveTask(item, 'onGoing', 'queue', false)
     }
-  }
-
-  static getVodCmd(item: DownloadItem, filePath: string, config: Config) {
-    const { url } = item
-
-    const showCmd = `${config.general.showDownloadCmd ? 'start ' : ''}`
-
-    return `${showCmd}streamlink ${url} best -o ${filePath}`
   }
 
   static async checkDownload(filepath: string, item: DownloadItem) {
@@ -562,15 +550,5 @@ export default class Download {
     download.downloadList.vodList[from].splice(index, 1)
 
     await download.setDownloadList()
-  }
-
-  static clearLiveCheckTimer(user_id: string) {
-    clearTimeout(Download.liveCheckTimer[user_id])
-
-    delete Download.liveCheckTimer[user_id]
-  }
-
-  static clearLiveCheckTimers() {
-    Object.keys(Download.liveCheckTimer).forEach(Download.clearLiveCheckTimer)
   }
 }
