@@ -43,12 +43,9 @@ export default class Download {
       const filePath = path.join(dirToSaveRecord, `${filename}.ts`)
       const sourceUrl = `https://www.twitch.tv/${user_login}`
 
-      const cmd = Download.getDownloadCmd(sourceUrl, filePath)
+      const cmd = Download.getDownloadCmd(sourceUrl, filePath, showDownloadCmd)
 
-      let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
-        detached: showDownloadCmd,
-        shell: true
-      })
+      let task: null | cp.ChildProcess = cp.exec(cmd)
 
       const spawnFn = async () => {
         await Promise.all([
@@ -100,12 +97,19 @@ export default class Download {
     }
   }
 
-  static getDownloadCmd(sourceUrl: string, filePath: string, isLive = true) {
+  static getDownloadCmd(
+    sourceUrl: string,
+    filePath: string,
+    isShowCmd: boolean,
+    isLive = true
+  ) {
     const { dir } = path.parse(filePath)
     FileSystem.makeDirIfNotExist(dir)
 
     const liveSetting = isLive ? `--twitch-disable-hosting ` : ''
-    return `streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
+    const showCmd = isShowCmd ? 'start ' : ''
+
+    return `${showCmd}streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
   }
 
   static checkStatus(limit: number, downloadList: DownloadList) {
@@ -382,18 +386,20 @@ export default class Download {
 
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
 
-    const cmd = Download.getDownloadCmd(item.url, filePath, false)
+    const cmd = Download.getDownloadCmd(
+      item.url,
+      filePath,
+      showDownloadCmd,
+      false
+    )
 
-    let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
-      detached: showDownloadCmd,
-      shell: true
-    })
+    let task: null | cp.ChildProcess = cp.exec(cmd)
 
     const spawnFn = async () => {
       await Download.updateOngoing(item, task?.pid)
     }
 
-    const closeFn = async (code: number | null) =>  {
+    const closeFn = async (code: number | null) => {
       task?.off('spawn', spawnFn)
 
       task?.off('close', closeFn)
@@ -412,7 +418,7 @@ export default class Download {
         await Download.handleFailure(item)
       }
     }
-    
+
     task.on('spawn', spawnFn)
 
     task.on('close', closeFn)
