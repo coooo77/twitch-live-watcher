@@ -39,6 +39,7 @@
           </div>
 
           <Observer
+            :hideObserver="hideObserver"
             :observeTarget="followListEl"
             @intersect="loadCards"
           />
@@ -96,6 +97,8 @@ const { followList } = storeToRefs(follow)
 // TODO: add steps according to window size
 const steps = 9
 
+const hideObserver = ref(false)
+
 const currentDisplayCount = ref(9)
 
 const isShowDialog = ref(false)
@@ -120,6 +123,8 @@ const loadCards = (observer: IntersectionObserver) => {
     currentDisplayCount.value += steps
   } else {
     observer.disconnect()
+
+    hideObserver.value = true
   }
 }
 
@@ -288,6 +293,8 @@ const filterStreamer = () => {
   searchValue.value = ''
 
   currentDisplayCount.value = steps
+
+  hideObserver.value = false
 
   forceScrollUpdate.value = new Date().toJSON()
 }

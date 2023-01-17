@@ -1,10 +1,13 @@
 <template>
-  <div ref="observerEl" class="observer flex h-px" />
+  <div v-show="!hideObserver" ref="observerEl" class="observer flex">
+    <div class="text text-themeColor4 font-bold m-auto">Loading ...</div>
+  </div>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{
   observeTarget?: HTMLElement
+  hideObserver: boolean
 }>()
 
 const emit = defineEmits<{
