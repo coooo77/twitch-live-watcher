@@ -1,17 +1,11 @@
 <template>
-  <div
-    class="pageView grid grid-rows-[min-content,1fr]"
+  <div class="pageView grid grid-rows-[min-content,1fr]"
     v-loading="loading"
     element-loading-background="transparent"
     element-loading-text="Loading..."
   >
     <div class="controllers mb-2">
-      <el-button
-        color="#576F72"
-        plain
-        :disabled="!isConfigChanged"
-        @click="saveConfig"
-      >
+      <el-button color="#576F72" plain :disabled="!isConfigChanged" @click="saveConfig">
         <strong>Save</strong>
       </el-button>
 
@@ -23,10 +17,7 @@
         <strong>Export</strong>
       </el-button>
 
-      <el-popconfirm
-        title="Are you sure to resume config to default?"
-        @confirm="resumeConfig"
-      >
+      <el-popconfirm title="Are you sure to resume config to default?" @confirm="resumeConfig">
         <template #reference>
           <el-button type="danger">
             <strong>Default</strong>
@@ -46,10 +37,7 @@
 
               <div class="configContent">
                 <InputRow title="Enable Record">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.enableRecord"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.enableRecord" />
 
                   <template #popIcon>
                     <Explanation :content="record.enableRecord" />
@@ -57,10 +45,7 @@
                 </InputRow>
 
                 <InputRow title="Enable Notify">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.enableNotify"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.enableNotify" />
 
                   <template #popIcon>
                     <Explanation :content="record.enableNotify" />
@@ -68,10 +53,7 @@
                 </InputRow>
 
                 <InputRow title="Enable Record VOD">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.vodEnableRecordVOD"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.vodEnableRecordVOD" />
 
                   <template #popIcon>
                     <Explanation :content="record.vodEnableRecordVOD" />
@@ -79,10 +61,7 @@
                 </InputRow>
 
                 <InputRow title="Is Stop Record Stream">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.vodIsStopRecordStream"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.vodIsStopRecordStream" />
 
                   <template #popIcon>
                     <Explanation :content="record.vodIsStopRecordStream" />
@@ -90,10 +69,7 @@
                 </InputRow>
 
                 <InputRow title="Download If No Vod">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.vodGetStreamIfNoVod"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.vodGetStreamIfNoVod" />
 
                   <template #popIcon>
                     <Explanation :content="record.vodGetStreamIfNoVod" />
@@ -101,43 +77,22 @@
                 </InputRow>
 
                 <InputRow title="VOD Download Mode">
-                  <div
-                    class="vodDownloadMode flex flex-nowrap items-center gap-2"
-                  >
-                    <el-select
-                      v-model="userConfig.record.vodMode"
-                      placeholder="Select"
-                      size="small"
-                    >
-                      <el-option
-                        v-for="item in recordModeList"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value"
-                      />
+                  <div class="vodDownloadMode flex flex-nowrap items-center gap-2">
+                    <el-select v-model="userConfig.record.vodMode" placeholder="Select" size="small">
+                      <el-option v-for="item in recordModeList" :key="item.value" :label="item.label"
+                        :value="item.value" />
                     </el-select>
 
                     <template v-if="userConfig.record.vodMode === 'countDown'">
-                      <el-input-number
-                        v-model="userConfig.record.vodCountDownInMinutes"
-                        :min="0"
-                        :max="1440"
-                        size="small"
-                        controls-position="right"
-                      />
+                      <el-input-number v-model="userConfig.record.vodCountDownInMinutes" :min="0" :max="1440"
+                        size="small" controls-position="right" />
 
                       <div class="font-bold text-themeColor4">minutes</div>
                     </template>
 
-                    <template
-                      v-else-if="userConfig.record.vodMode === 'timeZone'"
-                    >
-                      <el-time-picker
-                        v-model="userConfig.record.vodTimeZone"
-                        placeholder="time zone"
-                        size="small"
-                        :clearable="false"
-                      />
+                    <template v-else-if="userConfig.record.vodMode === 'timeZone'">
+                      <el-time-picker v-model="userConfig.record.vodTimeZone" placeholder="time zone" size="small"
+                        :clearable="false" />
                     </template>
                   </div>
 
@@ -146,17 +101,9 @@
                       <template #popContent>
                         <el-table :data="vodModeExplanation">
                           <!-- prettier-ignore -->
-                          <el-table-column
-                             width="120"
-                             property="mode"
-                             label="Mode"
-                           />
+                          <el-table-column width="120" property="mode" label="Mode" />
 
-                          <el-table-column
-                            width="300"
-                            property="explanation"
-                            label="Explanation"
-                          />
+                          <el-table-column width="300" property="explanation" label="Explanation" />
                         </el-table>
                       </template>
                     </Explanation>
@@ -164,34 +111,19 @@
                 </InputRow>
 
                 <InputRow title="VOD Filename Template">
-                  <el-input
-                    size="small"
-                    v-model="userConfig.record.vodFileNameTemplate"
-                    placeholder="Filename Template For VOD"
-                  />
+                  <el-input size="small" v-model="userConfig.record.vodFileNameTemplate"
+                    placeholder="Filename Template For VOD" />
 
                   <template #popIcon>
                     <Explanation :content="record.vodFileNameTemplate">
                       <template #popContent>
                         <el-table :data="wildcardExplanation">
                           <!-- prettier-ignore -->
-                          <el-table-column
-                             width="auto"
-                             property="wildcard"
-                             label="Wildcard"
-                           />
+                          <el-table-column width="auto" property="wildcard" label="Wildcard" />
 
-                          <el-table-column
-                            width="auto"
-                            property="description"
-                            label="Description"
-                          />
-                          
-                          <el-table-column
-                            width="auto"
-                            property="example"
-                            label="Example"
-                          />
+                          <el-table-column width="auto" property="description" label="Description" />
+
+                          <el-table-column width="auto" property="example" label="Example" />
                         </el-table>
                       </template>
                     </Explanation>
@@ -199,34 +131,19 @@
                 </InputRow>
 
                 <InputRow title="Live Filename Template">
-                  <el-input
-                    size="small"
-                    v-model="userConfig.record.fileNameTemplate"
-                    placeholder="Filename Template For Live Record"
-                  />
+                  <el-input size="small" v-model="userConfig.record.fileNameTemplate"
+                    placeholder="Filename Template For Live Record" />
 
                   <template #popIcon>
                     <Explanation :content="record.fileNameTemplate">
                       <template #popContent>
                         <el-table :data="wildcardExplanation">
                           <!-- prettier-ignore -->
-                          <el-table-column
-                             width="auto"
-                             property="wildcard"
-                             label="Wildcard"
-                           />
+                          <el-table-column width="auto" property="wildcard" label="Wildcard" />
 
-                          <el-table-column
-                            width="auto"
-                            property="description"
-                            label="Description"
-                          />
+                          <el-table-column width="auto" property="description" label="Description" />
 
-                          <el-table-column
-                            width="auto"
-                            property="example"
-                            label="Example"
-                          />
+                          <el-table-column width="auto" property="example" label="Example" />
                         </el-table>
                       </template>
                     </Explanation>
@@ -234,31 +151,20 @@
                 </InputRow>
 
                 <InputRow title="Enable Tag Check">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.record.checkStreamContentTypeEnable"
-                  />
+                  <el-switch size="small" v-model="userConfig.record.checkStreamContentTypeEnable" />
 
                   <template #popIcon>
-                    <Explanation
-                      :content="record.checkStreamContentTypeEnable"
-                    />
+                    <Explanation :content="record.checkStreamContentTypeEnable" />
                   </template>
                 </InputRow>
 
                 <InputRow title="Game Tag List">
-                  <el-input
-                    size="small"
-                    v-model="
-                      userConfig.record.checkStreamContentTypeTargetGameNames
-                    "
-                    placeholder="write game tag here"
-                  />
+                  <el-input size="small" v-model="
+                    userConfig.record.checkStreamContentTypeTargetGameNames
+                  " placeholder="write game tag here" />
 
                   <template #popIcon>
-                    <Explanation
-                      :content="record.checkStreamContentTypeTargetGameNames"
-                    />
+                    <Explanation :content="record.checkStreamContentTypeTargetGameNames" />
                   </template>
                 </InputRow>
               </div>
@@ -271,12 +177,8 @@
 
               <div class="configContent">
                 <InputRow title="Check Stream Interval">
-                  <el-input-number
-                    v-model="userConfig.general.checkStreamInterval"
-                    :min="30"
-                    size="small"
-                    controls-position="right"
-                  />
+                  <el-input-number v-model="userConfig.general.checkStreamInterval" :min="30" size="small"
+                    controls-position="right" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
@@ -286,18 +188,10 @@
 
                 <InputRow title="Directory to Save">
                   <div class="dirToSaveRecord flex flex-nowrap gap-2">
-                    <el-input
-                      disabled
-                      size="small"
-                      v-model="userConfig.general.dirToSaveRecord"
-                      placeholder="Filename Template For VOD"
-                    />
+                    <el-input disabled size="small" v-model="userConfig.general.dirToSaveRecord"
+                      placeholder="Filename Template For VOD" />
 
-                    <el-button
-                      size="small"
-                      @click="setRecordSaveDir"
-                      color="#576F72"
-                    >
+                    <el-button size="small" @click="setRecordSaveDir" color="#576F72">
                       <strong>Edit</strong>
                     </el-button>
                   </div>
@@ -309,12 +203,8 @@
                 </InputRow>
 
                 <InputRow title="Number of Record limit">
-                  <el-input-number
-                    v-model="userConfig.general.numOfDownloadLimit"
-                    :min="0"
-                    size="small"
-                    controls-position="right"
-                  />
+                  <el-input-number v-model="userConfig.general.numOfDownloadLimit" :min="0" size="small"
+                    controls-position="right" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
@@ -323,14 +213,20 @@
                 </InputRow>
 
                 <InputRow title="Is Show Cmd">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.general.showDownloadCmd"
-                  />
+                  <el-switch size="small" v-model="userConfig.general.showDownloadCmd" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
                     <Explanation :content="general.showDownloadCmd" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Close Cmd when stop">
+                  <el-switch size="small" v-model="userConfig.general.closeCmdWhenAppStop" />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.closeCmdWhenAppStop" />
                   </template>
                 </InputRow>
               </div>
@@ -343,12 +239,8 @@
 
               <div class="configContent">
                 <InputRow title="Download Retry Interval">
-                  <el-input-number
-                    v-model="userConfig.vod.reTryDownloadInterval"
-                    :min="0"
-                    size="small"
-                    controls-position="right"
-                  />
+                  <el-input-number v-model="userConfig.vod.reTryDownloadInterval" :min="0" size="small"
+                    controls-position="right" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
@@ -357,12 +249,8 @@
                 </InputRow>
 
                 <InputRow title="Max ReDownload Times">
-                  <el-input-number
-                    v-model="userConfig.vod.maxReDownloadTimes"
-                    :min="0"
-                    size="small"
-                    controls-position="right"
-                  />
+                  <el-input-number v-model="userConfig.vod.maxReDownloadTimes" :min="0" size="small"
+                    controls-position="right" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
@@ -371,10 +259,7 @@
                 </InputRow>
 
                 <InputRow title="Integrity Check">
-                  <el-switch
-                    size="small"
-                    v-model="userConfig.vod.IntegrityCheck"
-                  />
+                  <el-switch size="small" v-model="userConfig.vod.IntegrityCheck" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
@@ -382,16 +267,9 @@
                   </template>
                 </InputRow>
 
-                <InputRow
-                  v-show="userConfig.vod.IntegrityCheck"
-                  title="Loss Duration Allowed"
-                >
-                  <el-input-number
-                    v-model="userConfig.vod.LossOfVODDurationAllowed"
-                    :min="0"
-                    size="small"
-                    controls-position="right"
-                  />
+                <InputRow v-show="userConfig.vod.IntegrityCheck" title="Loss Duration Allowed">
+                  <el-input-number v-model="userConfig.vod.LossOfVODDurationAllowed" :min="0" size="small"
+                    controls-position="right" />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>

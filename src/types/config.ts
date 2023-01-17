@@ -9,6 +9,8 @@ export interface GeneralSetting {
   numOfDownloadLimit: number
   /** show download cmd */
   showDownloadCmd: boolean
+  /** close cmd when app stop */
+  closeCmdWhenAppStop: boolean
 }
 
 export interface VodSetting {

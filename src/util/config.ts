@@ -13,15 +13,17 @@ export default class ConfigSystem {
     checkStreamInterval: 30,
     dirToSaveRecord: FileSystem.ROOT_PATH || ConfigSystem.defaultDir,
     numOfDownloadLimit: 0,
-    showDownloadCmd: false
+    showDownloadCmd: false,
+    closeCmdWhenAppStop: false
   }
 
-  static explanationGeneralSetting = {
+  static explanationGeneralSetting: Record<keyof GeneralSetting, string> = {
     checkStreamInterval: 'interval for online check (unit: seconds)',
     dirToSaveRecord: 'directory path where files save',
     numOfDownloadLimit:
       'numbers of live stream recorder allow to run, set 0 as unlimited',
-    showDownloadCmd: 'show download prompt command'
+    showDownloadCmd: 'show download prompt command',
+    closeCmdWhenAppStop: 'when show download cmd, close download cmd when app is stopped'
   }
 
   static defaultVodSetting: VodSetting = {
@@ -31,7 +33,7 @@ export default class ConfigSystem {
     IntegrityCheck: true
   }
 
-  static explanationVodSetting = {
+  static explanationVodSetting: Record<keyof VodSetting, string> = {
     reTryDownloadInterval:
       'minutes to download VOD again when VOD download is failed',
     maxReDownloadTimes: 'maximum times to download VOD',
@@ -57,7 +59,7 @@ export default class ConfigSystem {
       '{streamer}_{streamer_id}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
   }
 
-  static explanationRecordSetting = {
+  static explanationRecordSetting: Record<keyof RecordSetting, string> = {
     enableRecord: 'enable record stream',
     enableNotify: 'enable notify when streamer online',
     vodEnableRecordVOD: 'enable record vod',

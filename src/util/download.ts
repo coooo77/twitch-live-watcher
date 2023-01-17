@@ -8,7 +8,6 @@ import useConfig from '../store/config'
 import useFollow from '../store/follow'
 import useDownload from '../store/download'
 import { Streamer } from '../types/streamer'
-import { Config, GeneralSetting } from '../types/config'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
@@ -187,10 +186,16 @@ export default class Download {
   }
 
   static async abortAllDownloads() {
+    const config = useConfig()
+
     const download = useDownload()
 
+    const { closeCmdWhenAppStop, showDownloadCmd } = config.userConfig.general
+
+    const isStopCmd = !showDownloadCmd || closeCmdWhenAppStop
+
     for (const item of Object.values(download.downloadList.liveStreams)) {
-      if (item.pid !== undefined) killProcess(item.pid)
+      if (isStopCmd && item.pid !== undefined) killProcess(item.pid)
     }
 
     download.downloadList.liveStreams = {}
@@ -393,7 +398,7 @@ export default class Download {
       await Download.updateOngoing(item, task?.pid)
     }
 
-    const closeFn = async (code: number | null) =>  {
+    const closeFn = async (code: number | null) => {
       task?.off('spawn', spawnFn)
 
       task?.off('close', closeFn)
@@ -412,7 +417,7 @@ export default class Download {
         await Download.handleFailure(item)
       }
     }
-    
+
     task.on('spawn', spawnFn)
 
     task.on('close', closeFn)
@@ -481,12 +486,18 @@ export default class Download {
   }
 
   static async abortAllOngoingVod() {
+    const config = useConfig()
+
     const download = useDownload()
+
+    const { closeCmdWhenAppStop, showDownloadCmd } = config.userConfig.general
+
+    const isStopCmd = !showDownloadCmd || closeCmdWhenAppStop
 
     const { onGoing } = download.downloadList.vodList
 
     for (const item of onGoing) {
-      if (item.pid !== undefined) killProcess(item.pid)
+      if (isStopCmd && item.pid !== undefined) killProcess(item.pid)
 
       item.status = 'Queue'
     }
