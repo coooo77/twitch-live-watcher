@@ -11,6 +11,10 @@ import { Streamer } from '../types/streamer'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
+type GetMediaDurationRes<T extends boolean> = T extends boolean
+  ? number
+  : string
+
 export default class Download {
   static filename = 'download'
 
@@ -81,6 +85,8 @@ export default class Download {
 
           throw Error(JSON.stringify(payload))
         } else {
+          // TODO: LOG for retry debug
+          // FIXME: manually cancel download in cmd visible mode show clear timeout
           await Helper.wait(60)
 
           await Download.abortLiveRecord(stream)
@@ -105,16 +111,6 @@ export default class Download {
 
     const liveSetting = isLive ? `--twitch-disable-hosting ` : ''
     return `streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
-  }
-
-  static checkStatus(limit: number, downloadList: DownloadList) {
-    const currentDownload = Object.values(downloadList.liveStreams)
-
-    const hasLimit = limit > 0
-
-    const isReachLimit = currentDownload.length + 1 > limit
-
-    return !(hasLimit && isReachLimit)
   }
 
   static getStreamFilename(template: string, stream: FollowedStream) {
@@ -178,9 +174,9 @@ export default class Download {
   static async updateStreamerStatus(stream: FollowedStream, status: boolean) {
     const follow = useFollow()
 
-    if (follow.followList.streamers[stream.user_id] === undefined) return
+    if (follow.followList.onlineList[stream.user_id] === undefined) return
 
-    follow.followList.streamers[stream.user_id].status.isRecording = status
+    follow.followList.onlineList[stream.user_id].isRecording = status
 
     await follow.setFollowList()
   }
@@ -208,11 +204,12 @@ export default class Download {
 
     const download = useDownload()
 
-    if (follow.followList.streamers[stream.user_id]) {
-      follow.followList.streamers[stream.user_id].status.isRecording = false
+    if (follow.followList.onlineList[stream.user_id]) {
+      follow.followList.onlineList[stream.user_id].isRecording = false
     }
 
     if (download.downloadList.liveStreams[stream.id]) {
+      // TODO: clear retry timer
       const { pid } = download.downloadList.liveStreams[stream.id]
 
       if (pid !== undefined) killProcess(pid)
@@ -223,14 +220,14 @@ export default class Download {
     await Promise.all([follow.setFollowList(), download.setDownloadList()])
   }
 
-  static async updateVodList(user_id: string) {
+  static async updateVodList(user_id: string, vodID: string) {
     const follow = useFollow()
 
     const streamer = follow.followList.streamers[user_id]
 
     if (!streamer) return
 
-    const videos = await Download.getVod(user_id, streamer.status.onlineVodID)
+    const videos = await Download.getVod(user_id, vodID)
 
     if (videos.length === 0) return
 
@@ -313,31 +310,21 @@ export default class Download {
     }
   }
 
-  static getMediaDuration(
+  static getMediaDuration<T extends boolean = true>(
     videoPath: string,
     showInSeconds = true
-  ): Promise<number> {
-    return new Promise((resolve, reject) => {
-      try {
-        const options = `-v error${
-          showInSeconds ? ' ' : ' -sexagesimal '
-        }-show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${videoPath}`
+  ): GetMediaDurationRes<T> {
+    let command = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 `
 
-        const task = cp.spawn('ffprobe', options.split(' '))
+    if (!showInSeconds) command += ' -sexagesimal'
 
-        task.stdout.on('data', (msg) => {
-          resolve(Number(msg.toString()))
-        })
+    command += ` ${videoPath}`
 
-        task.stderr.on('data', (msg) => {
-          throw new Error(msg.toString())
-        })
-      } catch (error) {
-        FileSystem.errorHandler(error)
+    const stdout = cp.execSync(command).toString()
 
-        resolve(-1)
-      }
-    })
+    return (
+      showInSeconds ? parseFloat(stdout) : stdout
+    ) as GetMediaDurationRes<T>
   }
 
   static stringDurationToSec(duration: string) {
@@ -409,7 +396,7 @@ export default class Download {
         return await Download.handleFailure(item)
       }
 
-      const isSuccess = await Download.checkDownload(filePath, item)
+      const isSuccess = await Download.checkIsSuccessDownload(filePath, item)
 
       if (isSuccess) {
         await Download.handleSuccess(item)
@@ -455,20 +442,24 @@ export default class Download {
     }
   }
 
-  static async checkDownload(filepath: string, item: DownloadItem) {
-    const config = useConfig()
+  static async checkIsSuccessDownload(filepath: string, item: DownloadItem) {
+    try {
+      const config = useConfig()
 
-    const { IntegrityCheck, LossOfVODDurationAllowed } = config.userConfig.vod
+      const { IntegrityCheck, LossOfVODDurationAllowed } = config.userConfig.vod
 
-    if (!IntegrityCheck) return true
+      if (!IntegrityCheck) return true
 
-    const dataDuration = Download.stringDurationToSec(item.duration)
+      const dataDuration = Download.stringDurationToSec(item.duration)
 
-    const fileDuration = await Download.getMediaDuration(filepath)
+      const fileDuration = Download.getMediaDuration(filepath)
 
-    if (fileDuration === -1) return true
+      return dataDuration - fileDuration <= LossOfVODDurationAllowed
+    } catch (error) {
+      FileSystem.errorHandler(error)
 
-    return dataDuration - fileDuration <= LossOfVODDurationAllowed
+      return true
+    }
   }
 
   static async updateOngoing(item: DownloadItem, pid?: number) {

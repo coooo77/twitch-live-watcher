@@ -41,7 +41,9 @@ export default defineStore('followList', {
   actions: {
     async getFollowList() {
       try {
-        this.followList = await ModelSystem.getFollowList()
+        const followList = await ModelSystem.getFollowList()
+
+        this.followList = followList
       } catch (error) {
         FileSystem.errorHandler(error)
       } finally {
@@ -50,7 +52,7 @@ export default defineStore('followList', {
     },
     async setFollowList(followList?: FollowList) {
       try {
-        if (followList) {
+        if (followList && Object.keys(followList.streamers)) {
           await ModelSystem.setFollowList(followList)
 
           this.followList = followList
@@ -137,17 +139,7 @@ export default defineStore('followList', {
       await this.clearOnlineList()
     },
     async clearOnlineList() {
-      for (const user_id of Object.keys(this.followList.onlineList)) {
-        if (!this.followList.streamers[user_id]) continue
-
-        this.followList.streamers[user_id].status.isOnline = false
-
-        this.followList.streamers[user_id].status.isRecording = false
-
-        delete this.followList.streamers[user_id].status.onlineVodID
-
-        delete this.followList.onlineList[user_id]
-      }
+      this.followList.onlineList = {}
 
       await this.setFollowList(this.followList)
     },
@@ -170,19 +162,13 @@ export default defineStore('followList', {
 
         if (isStillOnline) continue
 
-        mapList.delete(user_id)
+        const { onlineVodID } = this.followList.onlineList[user_id]
+
+        if (onlineVodID) {
+          await DownloadSystem.updateVodList(user_id, onlineVodID)
+        }
 
         delete this.followList.onlineList[user_id]
-
-        this.followList.streamers[user_id].status.isOnline = false
-
-        this.followList.streamers[user_id].status.isRecording = false
-
-        if (this.followList.streamers[user_id].status.onlineVodID) {
-          await DownloadSystem.updateVodList(user_id)
-
-          delete this.followList.streamers[user_id].status.onlineVodID
-        }
       }
     },
     async handleStreamerOnline(mapList: MapList) {
@@ -214,7 +200,7 @@ export default defineStore('followList', {
 
         await this.updateOnlineStatus(stream, isValidGameName)
 
-        const { isRecording } = streamer.status
+        const { isRecording } = this.followList.onlineList[user_id]
 
         const isReachDownloadLimit =
           limit > 0 &&
@@ -231,7 +217,7 @@ export default defineStore('followList', {
 
         if (isUnableToRecord) continue
 
-        const { onlineVodID } = this.followList.streamers[user_id].status
+        const { onlineVodID } = this.followList.onlineList[user_id]
 
         const haveToCheckVodID =
           !onlineVodID && vodEnableRecordVOD && isValidGameName
@@ -265,11 +251,13 @@ export default defineStore('followList', {
         await this.updateVodID(user_id)
       }
 
-      this.followList.onlineList[user_id] = user_id
+      this.followList.onlineList[user_id] = {
+        user_login,
+        isRecording: false,
+        displayName: user_name
+      }
 
       this.followList.streamers[user_id].status = {
-        ...this.followList.streamers[user_id].status,
-        isOnline: true,
         streamStartedAt: new Date().toJSON()
       }
 
@@ -285,15 +273,9 @@ export default defineStore('followList', {
 
       if (!vodEnableRecordVOD) return false
 
-      const haveVod = this.followList.streamers[user_id].status.onlineVodID
+      const haveVod = this.followList.onlineList[user_id].onlineVodID
 
-      const haveVodAndStopRecord = Boolean(haveVod && vodIsStopRecordStream)
-
-      const noVodAndStopRecord = Boolean(!haveVod && !vodGetStreamIfNoVod)
-
-      const isStopRecordLive = noVodAndStopRecord || haveVodAndStopRecord
-
-      return isStopRecordLive
+      return haveVod ? vodIsStopRecordStream : !vodGetStreamIfNoVod
     },
     async updateVodID(user_id: string) {
       const vod = await getVideos({ user_id })
@@ -306,7 +288,7 @@ export default defineStore('followList', {
       )
 
       if (haveVod) {
-        this.followList.streamers[user_id].status.onlineVodID = lastVOD.id
+        this.followList.onlineList[user_id].onlineVodID = lastVOD.id
       }
     }
   }

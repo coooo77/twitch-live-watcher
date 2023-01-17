@@ -1,4 +1,4 @@
-import { FollowList, RecordSetting, Streamer } from "src/types/streamer"
+import { FollowList, RecordSetting, Streamer } from 'src/types/streamer'
 
 export default class StreamerSystem {
   static filename = 'followList'
@@ -29,10 +29,7 @@ export default class StreamerSystem {
     displayName: '',
     profileImg: '',
     offlineImg: '',
-    status: {
-      isOnline: false,
-      isRecording: false
-    }
+    status: {}
   }
 
   static defaultStreamer: Streamer = {

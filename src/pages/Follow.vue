@@ -192,7 +192,7 @@ const transformStreamerData = (streamers: GetUsersResponse[]): Streamer[] => {
     displayName: streamer.display_name,
     profileImg: streamer.profile_image_url,
     offlineImg: streamer.offline_image_url,
-    status: { isOnline: false, isRecording: false },
+    status: {},
     recordSetting: Object.assign({}, config.userConfig.record)
   }))
 }

@@ -75,7 +75,7 @@ const startOrStopApp = (value: boolean) => {
 }
 
 const isRecording = (user_id: string) => {
-  return follow.followList.streamers[user_id]?.status.isRecording || false
+  return follow.followList.onlineList[user_id]?.isRecording || false
 }
 
 const checkVisitTime = () => {

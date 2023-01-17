@@ -34,10 +34,12 @@ export interface RecordSetting {
 }
 
 export interface UserStatus {
-  isOnline: boolean
+  streamStartedAt?: string
+}
+
+export interface StreamerStatus {
   isRecording: boolean
   onlineVodID?: string
-  streamStartedAt?: string
 }
 
 export interface Streamer {
@@ -51,13 +53,12 @@ export interface Streamer {
   recordSetting: RecordSetting
 }
 
-export interface Streamers {
-  [key: Streamer['user_id']]: Streamer
-}
+export type Streamers = Record<Streamer['user_id'], Streamer>
 
-export interface OnlineList {
-  [key: Streamer['user_id']]: Streamer['user_id']
-}
+export type OnlineInfo = Pick<Streamer, 'user_login' | 'displayName'> &
+  StreamerStatus
+
+export type OnlineList = Record<Streamer['user_id'], OnlineInfo>
 
 export interface FollowList {
   streamers: Streamers

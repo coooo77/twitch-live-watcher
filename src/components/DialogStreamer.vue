@@ -35,7 +35,7 @@
                   </div>
 
                   <div class="status statusInfo bg-themeColor4">
-                    {{ streamer.status.isRecording ? 'Recording' : 'None' }}
+                    {{ status.isRecording ? 'Recording' : 'None' }}
                   </div>
                 </div>
 
@@ -44,8 +44,8 @@
                     Status&#xff1a
                   </div>
 
-                  <div :class="[streamer.status.isOnline ? 'bg-themeColor5' : 'bg-themeColor4']" class="status statusInfo bg-themeColor4">
-                    {{ streamer.status.isOnline ? 'LIVE' : 'Offline' }}
+                  <div :class="[status.isOnline ? 'bg-themeColor5' : 'bg-themeColor4']" class="status statusInfo bg-themeColor4">
+                    {{ status.isOnline ? 'LIVE' : 'Offline' }}
                   </div>
                 </div>
 
@@ -269,6 +269,7 @@
 </template>
 
 <script setup lang="ts">
+import useFollow from '../store/follow'
 import ConfigSystem from '../util/config'
 import { Streamer } from '../types/streamer'
 // FIXME copy raw data and resume default streamer data
@@ -281,6 +282,8 @@ const emit = defineEmits<{
   (eventName: 'editStreamer', value: Streamer): void
   (eventName: 'update:isShowDialogContent', value: boolean): void
 }>()
+
+const follow = useFollow()
 
 const { record } = ConfigSystem.explanation
 
@@ -302,6 +305,17 @@ const lastStream = computed(() => {
   const date = time.getDate()
 
   return [year, month, date].join('/')
+})
+
+const status = computed(() => {
+  const streamerStatus = follow.followList.onlineList[props.streamer?.user_id]
+
+  if (!streamerStatus) return { isRecording: false, isOnline: false }
+
+  return {
+    isRecording: streamerStatus.isRecording,
+    isOnline: true
+  }
 })
 
 const editStreamer = () => {
