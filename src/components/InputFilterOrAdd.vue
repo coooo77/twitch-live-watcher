@@ -3,33 +3,44 @@
     v-model="_inputValue"
     :disabled="disableInput"
     :placeholder="placeholder"
-    @enter="$emit('search')"
   >
     <template #icon>
-      <Icon
-        class="text-themeColor4 ml-auto cursor-pointer"
-        :class="{ 'pointer-events-none': disableSearch }"
-        icon="ic:outline-search"
-        :width="iconSize"
-        :height="iconSize"
-        @click="$emit('search')"
-      />
+      <div class="icons flex item-center ml-auto">
+        <Icon
+          class="text-themeColor4 cursor-pointer"
+          icon="ion:search"
+          :width="iconSize"
+          :height="iconSize"
+          @click="$emit('filter')"
+        />
+
+        <Icon
+          :class="[
+            disableInput ? 'pointer-events-none cursor-wait' : 'cursor-pointer'
+          ]"
+          class="text-themeColor4 cursor-pointer"
+          icon="ic:round-add-circle-outline"
+          :width="iconSize"
+          :height="iconSize"
+          @click="$emit('add')"
+        />
+      </div>
     </template>
   </InputLayout>
 </template>
 
 <script setup lang="ts">
 import { withDefaults } from 'vue'
+
 import { Icon } from '@iconify/vue'
 
-const iconSize = 30
+const iconSize = 25
 
 const props = withDefaults(
   defineProps<{
     modelValue: string
     placeholder?: string
     disableInput?: boolean
-    disableSearch: boolean
   }>(),
   {
     placeholder: '',
@@ -38,7 +49,8 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  (eventName: 'search'): void
+  (eventName: 'add'): void
+  (eventName: 'filter'): void
   (eventName: 'update:modelValue', value: string): void
 }>()
 

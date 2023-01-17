@@ -1,12 +1,13 @@
 <template>
   <div class="pageView grid grid-rows-[min-content,1fr]">
     <div class="controllers flex flex-nowrap mb-2">
-      <InputSearch
+      <InputFilterOrAdd
         class="mr-3 grow"
-        placeholder="Search channel name to add ..."
+        placeholder="Enter channel name to add or filter ..."
         v-model="searchValue"
-        :disable-search="isSearching"
-        @search="addStreamerToFollowList"
+        :disable-input="isSearching"
+        @add="addStreamerToFollowList"
+        @filter="filterStreamer"
       />
 
       <el-button color="#576F72" @click="importFollowList">
@@ -20,7 +21,10 @@
 
     <div class="followList relative grow">
       <div ref="followListEl" class="layout absolute inset-0 overflow-auto">
-        <el-scrollbar v-if="followCardsDisplayed.length">
+        <el-scrollbar
+          :key="forceScrollUpdate"
+          v-if="followCardsDisplayed.length"
+        >
           <div class="cards grid gap-3 p-4">
             <CardFollow
               v-for="streamer of followCardsDisplayed"
@@ -35,7 +39,6 @@
           </div>
 
           <Observer
-            :hideObserver="hideObserver"
             :observeTarget="followListEl"
             @intersect="loadCards"
           />
@@ -66,7 +69,9 @@ import StreamerSystem from '../util/streamers'
 import { handleJsonFile } from '../composable/common'
 import { useNotification } from '../store/notification'
 import { getUsers, GetUsersResponse } from '../api/user'
-import { FollowList, Streamer, Streamers } from '../types/streamer'
+import { FollowList, Streamer } from '../types/streamer'
+
+const forceScrollUpdate = ref(new Date().toJSON())
 
 const notify = useNotification()
 
@@ -75,6 +80,8 @@ const { importJSON, exportJSON } = handleJsonFile()
 const config = useConfig()
 
 const follow = useFollow()
+
+const filterValue = ref('')
 
 const searchValue = ref('')
 
@@ -86,9 +93,8 @@ const isUpdatingStreamer = ref(false)
 
 const { followList } = storeToRefs(follow)
 
+// TODO: add steps according to window size
 const steps = 9
-
-const hideObserver = ref(false)
 
 const currentDisplayCount = ref(9)
 
@@ -99,7 +105,10 @@ const isShowDialogContent = ref(false)
 const dialogStreamer = ref<Streamer>(StreamerSystem.defaultStreamer)
 
 const followStreamers = computed(() => {
-  return Object.values(followList.value.streamers)
+  const list = Object.values(followList.value.streamers)
+  return filterValue.value
+    ? list.filter(({ user_login }) => user_login.includes(filterValue.value))
+    : list
 })
 
 const followCardsDisplayed = computed(() => {
@@ -111,8 +120,6 @@ const loadCards = (observer: IntersectionObserver) => {
     currentDisplayCount.value += steps
   } else {
     observer.disconnect()
-
-    hideObserver.value = true
   }
 }
 
@@ -240,6 +247,8 @@ const addStreamerToFollowList = async () => {
   } catch (error) {
     console.error(error)
   } finally {
+    forceScrollUpdate.value = new Date().toJSON()
+
     isSearching.value = false
   }
 }
@@ -271,6 +280,16 @@ const updateStreamerProfileImg = async (streamer: GetUsersResponse) => {
   follow.followList.streamers[id].offlineImg = offline_image_url
 
   await follow.setFollowList()
+}
+
+const filterStreamer = () => {
+  filterValue.value = searchValue.value
+
+  searchValue.value = ''
+
+  currentDisplayCount.value = steps
+
+  forceScrollUpdate.value = new Date().toJSON()
 }
 </script>
 
