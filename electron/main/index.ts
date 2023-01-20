@@ -13,7 +13,6 @@ import {
 import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
-import * as dotenv from 'dotenv'
 import type Electron from 'electron'
 import { release, homedir, userInfo } from 'os'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
@@ -23,18 +22,6 @@ process.env.DIST = join(process.env.DIST_ELECTRON, '../dist')
 process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
   ? join(process.env.DIST_ELECTRON, '../public')
   : process.env.DIST
-
-const envPath = app.isPackaged
-  ? join(__dirname, '..', '.env')
-  : join(__dirname, '..', '..', '.env')
-
-if (app.isPackaged) {
-  const folderPath = app.getPath('appData')
-  const filePath = join(folderPath, `${new Date().toJSON()}.txt`)
-  writeFileSync(filePath, envPath, 'utf8')
-}
-
-dotenv.config({ path: envPath })
 
 const modelPath = join(__dirname, '../../../model')
 
@@ -52,7 +39,7 @@ class MainProcess {
   static preload = join(__dirname, '../preload/index.js')
 
   // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-  static url = process.env.VITE_DEV_SERVER_URL
+  static url = import.meta.env['VITE_DEV_SERVER_URL']
 
   static indexHtml = join(process.env.DIST, 'index.html')
 
@@ -349,7 +336,7 @@ class AuthProcess {
     } = AuthProcess.authWindow.webContents
 
     const filter: WebRequestFilter = {
-      urls: [`${process.env['VITE_REDIRECT_URL']}*`]
+      urls: [`${import.meta.env['VITE_REDIRECT_URL']}*`]
     }
 
     webRequest.onBeforeRequest(
@@ -410,10 +397,10 @@ class AuthService {
 
   public static authenticationURL() {
     return (
-      `${process.env['VITE_BASE_URL']}/authorize?` +
-      `redirect_uri=${process.env['VITE_REDIRECT_URL']}` +
+      `${import.meta.env['VITE_BASE_URL']}/authorize?` +
+      `redirect_uri=${import.meta.env['VITE_REDIRECT_URL']}` +
       '&' +
-      `client_id=${process.env['VITE_CLIENT_ID']}` +
+      `client_id=${import.meta.env['VITE_CLIENT_ID']}` +
       '&' +
       'scope=user:read:follows' +
       '&' +
@@ -434,7 +421,7 @@ class AuthService {
     if (!refreshToken) throw new Error('No available refresh token.')
 
     try {
-      const url = `${process.env['VITE_BASE_URL']}/token`
+      const url = `${import.meta.env['VITE_BASE_URL']}/token`
 
       const options = {
         method: 'post',
@@ -442,8 +429,8 @@ class AuthService {
         body: JSON.stringify({
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
-          client_id: process.env['VITE_CLIENT_ID'],
-          client_secret: process.env['VITE_CLIENT_SECRET']
+          client_id: import.meta.env['VITE_CLIENT_ID'],
+          client_secret: import.meta.env['VITE_CLIENT_SECRET']
         })
       }
 
@@ -475,7 +462,7 @@ class AuthService {
     }
 
     try {
-      const url = `${process.env['VITE_BASE_URL']}/token`
+      const url = `${import.meta.env['VITE_BASE_URL']}/token`
 
       const options = {
         method: 'post',
@@ -483,9 +470,9 @@ class AuthService {
         body: JSON.stringify({
           grant_type: 'authorization_code',
           code: params.searchParams.get('code'),
-          client_id: process.env['VITE_CLIENT_ID'],
-          redirect_uri: process.env['VITE_REDIRECT_URL'],
-          client_secret: process.env['VITE_CLIENT_SECRET']
+          client_id: import.meta.env['VITE_CLIENT_ID'],
+          redirect_uri: import.meta.env['VITE_REDIRECT_URL'],
+          client_secret: import.meta.env['VITE_CLIENT_SECRET']
         })
       }
 
