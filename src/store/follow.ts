@@ -5,7 +5,6 @@ import FileSystem from '../util/file'
 import { ipcRenderer } from 'electron'
 import ModelSystem from '../util/model'
 import Download from '../util/download'
-import AuthService from '../util/authService'
 import DownloadSystem from '../util/download'
 import StreamerSystem from '../util/streamers'
 import { useNotification } from './notification'
@@ -69,7 +68,7 @@ export default defineStore('followList', {
       }
     },
     async getOnlineFollowList() {
-      const user_id = await AuthService.getUserID()
+      const user_id = await ipcRenderer.invoke('getUserID')
 
       const liveStreams: FollowedStream[] = []
 

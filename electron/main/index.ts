@@ -14,12 +14,25 @@ import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
 import * as dotenv from 'dotenv'
+import type Electron from 'electron'
 import { release, homedir, userInfo } from 'os'
 import { existsSync, readdirSync, writeFileSync } from 'fs'
 
+process.env.DIST_ELECTRON = join(__dirname, '..')
+process.env.DIST = join(process.env.DIST_ELECTRON, '../dist')
+process.env.PUBLIC = process.env.VITE_DEV_SERVER_URL
+  ? join(process.env.DIST_ELECTRON, '../public')
+  : process.env.DIST
+
 const envPath = app.isPackaged
-  ? join(__dirname, '..', '..', '.env')
-  : join(__dirname, '..', '..', '..', '.env')
+  ? join(__dirname, '..', '.env')
+  : join(__dirname, '..', '..', '.env')
+
+if (app.isPackaged) {
+  const folderPath = app.getPath('appData')
+  const filePath = join(folderPath, `${new Date().toJSON()}.txt`)
+  writeFileSync(filePath, envPath, 'utf8')
+}
 
 dotenv.config({ path: envPath })
 
@@ -39,9 +52,9 @@ class MainProcess {
   static preload = join(__dirname, '../preload/index.js')
 
   // 🚧 Use ['ENV_NAME'] avoid vite:define plugin
-  static url = `http://${process.env['VITE_DEV_SERVER_HOST']}:${process.env['VITE_DEV_SERVER_PORT']}`
+  static url = process.env.VITE_DEV_SERVER_URL
 
-  static indexHtml = join(MainProcess.ROOT_PATH.dist, 'index.html')
+  static indexHtml = join(process.env.DIST, 'index.html')
 
   static isDevToolOpen = false
 
@@ -191,6 +204,16 @@ class MainProcess {
 
         // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
       }
+    })
+
+    ipcMain.handle('getAccessToken', () => AuthService.accessToken)
+
+    ipcMain.handle('getUserID', () => AuthService.userID)
+
+    ipcMain.handle('refreshTokens', async () => {
+      await AuthService.refreshTokens()
+
+      return AuthService.accessToken
     })
 
     ipcMain.handle('showOpenDialog', (event, args: OpenDialogSyncOptions) =>

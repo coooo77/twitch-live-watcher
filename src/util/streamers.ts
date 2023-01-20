@@ -1,4 +1,4 @@
-import { FollowList, RecordSetting, Streamer } from 'src/types/streamer'
+import { FollowList, RecordSetting, Streamer } from '../types/streamer'
 
 export default class StreamerSystem {
   static filename = 'followList'

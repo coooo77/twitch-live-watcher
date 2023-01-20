@@ -1,5 +1,5 @@
 import FileSystem from './file'
-import AuthService from './authService'
+import { ipcRenderer } from 'electron'
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 interface RequestConfig extends AxiosRequestConfig {
@@ -15,10 +15,12 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
+    const accessToken = await ipcRenderer.invoke('getAccessToken')
+
     // prettier-ignore
     config.headers = Object.assign(
       config.headers || {},
-      { Authorization: `Bearer ${AuthService.accessToken}` }
+      { Authorization: `Bearer ${accessToken}` }
     )
 
     return config
@@ -34,11 +36,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
-      await AuthService.refreshTokens()
+      const accessToken = await ipcRenderer.invoke('refreshTokens')
 
-      axios.defaults.headers.common[
-        'Authorization'
-      ] = `Bearer ${AuthService.accessToken}`
+      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
 
       return api(originalRequest)
     } else if (

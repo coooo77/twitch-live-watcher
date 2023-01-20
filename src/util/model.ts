@@ -1,7 +1,7 @@
 import { join } from 'path'
 import FilesSystem from './file'
 import ConfigSystem from './config'
-import AuthService from './authService'
+import { ipcRenderer } from 'electron'
 import DownloadSystem from './download'
 import StreamerSystem from './streamers'
 import { Config } from '../types/config'
@@ -10,7 +10,7 @@ import { DownloadList } from '../types/download'
 
 export default class ModelSystem {
   private static async modelPath() {
-    const userID = await AuthService.getUserID()
+    const userID = await ipcRenderer.invoke('getUserID')
 
     return join(FilesSystem.ROOT_PATH, './model/', userID)
   }

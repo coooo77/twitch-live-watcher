@@ -1,7 +1,12 @@
+/// <reference types="vite-plugin-electron/electron-env" />
 
 declare namespace NodeJS {
   interface ProcessEnv {
-    NODE_ENV: 'development' | 'production'
+    VSCODE_DEBUG?: 'true'
+    DIST_ELECTRON: string
+    DIST: string
+    /** /dist/ or /public/ */
+    PUBLIC: string
     readonly VITE_DEV_SERVER_HOST: string
     readonly VITE_DEV_SERVER_PORT: string
     readonly VITE_CLIENT_ID: string

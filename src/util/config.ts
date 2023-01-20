@@ -1,8 +1,8 @@
 import os from 'os'
 import path from 'path'
 import FileSystem from './file'
-import { RecordSetting } from 'src/types/streamer'
-import { Config, GeneralSetting, VodSetting } from 'src/types/config'
+import { RecordSetting } from '../types/streamer'
+import { Config, GeneralSetting, VodSetting } from '../types/config'
 
 export default class ConfigSystem {
   static filename = 'configuration'
@@ -23,7 +23,8 @@ export default class ConfigSystem {
     numOfDownloadLimit:
       'numbers of live stream recorder allow to run, set 0 as unlimited',
     showDownloadCmd: 'show download prompt command',
-    closeCmdWhenAppStop: 'when show download cmd, close download cmd when app is stopped'
+    closeCmdWhenAppStop:
+      'when show download cmd, close download cmd when app is stopped'
   }
 
   static defaultVodSetting: VodSetting = {
