@@ -8,7 +8,7 @@
       <div class="icons flex item-center ml-auto">
         <Icon
           class="text-themeColor4 cursor-pointer"
-          icon="ion:search"
+          icon="material-symbols:filter-alt-outline-sharp"
           :width="iconSize"
           :height="iconSize"
           @click="$emit('filter')"
@@ -19,7 +19,7 @@
             disableInput ? 'pointer-events-none cursor-wait' : 'cursor-pointer'
           ]"
           class="text-themeColor4 cursor-pointer"
-          icon="ic:round-add-circle-outline"
+          icon="ion:search"
           :width="iconSize"
           :height="iconSize"
           @click="$emit('add')"
