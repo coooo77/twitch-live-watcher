@@ -245,15 +245,15 @@ export default defineStore('followList', {
 
       this.haveToUpdateFollowList = true
 
-      if (vodEnableRecordVOD && isValidTag) {
-        // FIXME: online without VOD, but actually it has
-        await this.updateVodID(user_id)
-      }
-
       this.followList.onlineList[user_id] = {
         user_login,
         isRecording: false,
         displayName: user_name
+      }
+
+      if (vodEnableRecordVOD && isValidTag) {
+        // FIXME: online without VOD, but actually it has
+        await this.updateVodID(user_id)
       }
 
       this.followList.streamers[user_id].status = {
