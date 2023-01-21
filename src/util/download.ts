@@ -78,6 +78,8 @@ export default class Download {
             Download.updateStreamerStatus(stream, false)
           ])
         } else if (retry === 5) {
+          await Download.abortLiveRecord(stream)
+
           const payload = {
             stream,
             message: 'reach max retry limit'
@@ -87,11 +89,11 @@ export default class Download {
         } else {
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
-          await Helper.wait(60)
-
           await Download.abortLiveRecord(stream)
 
           await Download.recordLiveStream(stream, ++retry)
+
+          await Helper.wait(60)
         }
       }
 
