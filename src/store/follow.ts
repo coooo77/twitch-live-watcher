@@ -199,7 +199,7 @@ export default defineStore('followList', {
 
         await this.updateOnlineStatus(stream, isValidGameName)
 
-        const { isRecording } = this.followList.onlineList[user_id]
+        const { isRecording, isForbidden } = this.followList.onlineList[user_id]
 
         const isReachDownloadLimit =
           limit > 0 &&
@@ -208,6 +208,7 @@ export default defineStore('followList', {
         const isStopRecordDueToVod = this.checkVodToStopRecord(streamer)
 
         const isUnableToRecord =
+          isForbidden ||
           isRecording ||
           !enableRecord ||
           !isValidGameName ||

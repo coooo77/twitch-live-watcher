@@ -53,6 +53,16 @@ export default class Download {
         shell: true
       })
 
+      let isForbidden403 = false
+
+      const handleForbidden403 = async (data: any) => {
+        const info = data.toString()
+
+        if (!info.includes('403 Client Error')) return
+
+        isForbidden403 = true
+      }
+
       const spawnFn = async () => {
         await Promise.all([
           Download.addDownloadRecord(stream, task?.pid),
@@ -65,6 +75,8 @@ export default class Download {
         task?.off('spawn', spawnFn)
 
         task?.off('close', closeFn)
+
+        task?.stdout?.off('data', handleForbidden403)
 
         task = null
 
@@ -89,17 +101,21 @@ export default class Download {
         } else {
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
-          await Download.abortLiveRecord(stream)
+          await Helper.wait(20)
+
+          await Download.abortLiveRecord(stream, isForbidden403)
+
+          if (isForbidden403) throw Error('403 Client Error: Forbidden for url')
 
           await Download.recordLiveStream(stream, ++retry)
-
-          await Helper.wait(60)
         }
       }
 
       task.on('spawn', spawnFn)
 
       task.on('close', closeFn)
+
+      task.stdout?.on('data', handleForbidden403)
     } catch (error) {
       FileSystem.errorHandler(error)
 
@@ -201,13 +217,16 @@ export default class Download {
     await download.setDownloadList()
   }
 
-  static async abortLiveRecord(stream: FollowedStream) {
+  static async abortLiveRecord(stream: FollowedStream, isForbidden = false) {
     const follow = useFollow()
 
     const download = useDownload()
 
     if (follow.followList.onlineList[stream.user_id]) {
       follow.followList.onlineList[stream.user_id].isRecording = false
+
+      // TODO: show 403 in UI
+      follow.followList.onlineList[stream.user_id].isForbidden = isForbidden
     }
 
     if (download.downloadList.liveStreams[stream.id]) {

@@ -40,6 +40,7 @@ export interface UserStatus {
 export interface StreamerStatus {
   isRecording: boolean
   onlineVodID?: string
+  isForbidden?: boolean
 }
 
 export interface Streamer {
