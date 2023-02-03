@@ -1,12 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import Helper from './helper'
 import cp from 'child_process'
 import FileSystem from './file'
-import { killProcess } from './common'
 import useConfig from '../store/config'
 import useFollow from '../store/follow'
 import useDownload from '../store/download'
+import { killProcess, wait } from './common'
 import { Streamer } from '../types/streamer'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
@@ -101,7 +100,7 @@ export default class Download {
         } else {
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
-          await Helper.wait(20)
+          await wait(20)
 
           await Download.abortLiveRecord(stream, isForbidden403)
 
