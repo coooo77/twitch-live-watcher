@@ -28,7 +28,11 @@ export default class Download {
     }
   }
 
+  static reTryTimer: Record<Streamer['user_id'], Date> = {}
+
   static async recordLiveStream(stream: FollowedStream, retry = 0) {
+    if (Download.reTryTimer[stream.user_id]) return
+
     try {
       const follow = useFollow()
       const config = useConfig()
@@ -99,9 +103,13 @@ export default class Download {
 
           throw Error(JSON.stringify(payload))
         } else {
+          Download.reTryTimer[stream.user_id] = new Date()
+
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
           await Helper.wait(20)
+
+          delete Download.reTryTimer[stream.user_id]
 
           await Download.abortLiveRecord(stream, isForbidden403)
 
@@ -230,7 +238,7 @@ export default class Download {
     }
 
     if (download.downloadList.liveStreams[stream.id]) {
-      // TODO: clear retry timer
+      // TODO: clear manually retry timer
       const { pid } = download.downloadList.liveStreams[stream.id]
 
       if (pid !== undefined) killProcess(pid)
