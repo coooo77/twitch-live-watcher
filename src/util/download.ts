@@ -56,16 +56,6 @@ export default class Download {
         shell: true
       })
 
-      let isForbidden403 = false
-
-      const handleForbidden403 = async (data: any) => {
-        const info = data.toString()
-
-        if (!info.includes('403 Client Error')) return
-
-        isForbidden403 = true
-      }
-
       const spawnFn = async () => {
         await Promise.all([
           Download.addDownloadRecord(stream, task?.pid),
@@ -78,8 +68,6 @@ export default class Download {
         task?.off('spawn', spawnFn)
 
         task?.off('close', closeFn)
-
-        task?.stdout?.off('data', handleForbidden403)
 
         task = null
 
@@ -102,17 +90,21 @@ export default class Download {
 
           throw Error(JSON.stringify(payload))
         } else {
-          Download.reTryTimer[stream.user_id] = new Date()
-
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
-          await wait(20)
+          const { message } = await Download.checkStreamError(cmd)
 
-          delete Download.reTryTimer[stream.user_id]
+          const isForbidden403 = message.includes('403 Client Error')
 
           await Download.abortLiveRecord(stream, isForbidden403)
 
           if (isForbidden403) throw Error('403 Client Error: Forbidden for url')
+
+          Download.reTryTimer[stream.user_id] = new Date()
+
+          await wait(30)
+
+          delete Download.reTryTimer[stream.user_id]          
 
           await Download.recordLiveStream(stream, ++retry)
         }
@@ -121,13 +113,38 @@ export default class Download {
       task.on('spawn', spawnFn)
 
       task.on('close', closeFn)
-
-      task.stdout?.on('data', handleForbidden403)
     } catch (error) {
       FileSystem.errorHandler(error)
 
       throw error
     }
+  }
+
+  static async checkStreamError(
+    cmd: string
+  ): Promise<{ message: string; code: null | number }> {
+    return new Promise((resolve, reject) => {
+      let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
+        detached: false,
+        shell: true
+      })
+
+      let message = ''
+
+      task.stdout?.setEncoding('utf8')
+
+      task.stdout?.on('data', (chunk) => {
+        message = chunk
+
+        killProcess(task?.pid)
+      })
+
+      task.once('close', (code) => {
+        task = null
+
+        resolve({ message, code })
+      })
+    })
   }
 
   static getDownloadCmd(sourceUrl: string, filePath: string, isLive = true) {

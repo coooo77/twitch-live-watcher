@@ -71,7 +71,9 @@ export function isProcessRunning(pid: number) {
   }
 }
 
-export function killProcess(pid: number, signal: string | number = 'SIGTERM') {
+export function killProcess(pid?: number, signal: string | number = 'SIGTERM') {
+  if (typeof pid === 'undefined') return
+
   if (!isProcessRunning(pid)) return
 
   if (process.platform == 'win32') {
