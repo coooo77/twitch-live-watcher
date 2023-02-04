@@ -104,7 +104,7 @@ export default class Download {
 
           await wait(30)
 
-          delete Download.reTryTimer[stream.user_id]          
+          delete Download.reTryTimer[stream.user_id]
 
           await Download.recordLiveStream(stream, ++retry)
         }
@@ -123,7 +123,7 @@ export default class Download {
   static async checkStreamError(
     cmd: string
   ): Promise<{ message: string; code: null | number }> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
         detached: false,
         shell: true
@@ -131,12 +131,10 @@ export default class Download {
 
       let message = ''
 
-      task.stdout?.setEncoding('utf8')
+      task.stdout?.setEncoding('utf-8')
 
       task.stdout?.on('data', (chunk) => {
-        message = chunk
-
-        killProcess(task?.pid)
+        message += chunk
       })
 
       task.once('close', (code) => {
