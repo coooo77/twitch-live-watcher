@@ -31,6 +31,8 @@ export interface RecordSetting {
   checkStreamContentTypeTargetGameNames: string
   /** e.g. {channel}-TwitchLive-{date} */
   fileNameTemplate: string
+  /** abort recording stream when streamers change their stream content type */
+  abortInvalidRecord: boolean
 }
 
 export interface UserStatus {

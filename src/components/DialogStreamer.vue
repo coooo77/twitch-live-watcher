@@ -108,6 +108,18 @@
                 </template>
               </InputRow>
 
+              <InputRow title="Abort Invalid Tag">
+                <el-switch
+                  size="small"
+                  v-model="streamer.recordSetting.abortInvalidRecord"
+                />
+                <template #popIcon>
+                  <Explanation
+                    :content="record.abortInvalidRecord"
+                  />
+                </template>
+              </InputRow>
+
               <InputRow title="Game Tag List">
                 <el-input
                   size="small"

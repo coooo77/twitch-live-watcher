@@ -20,7 +20,8 @@ export default class StreamerSystem {
     vodFileNameTemplate: '{channel}_TwitchVOD_{date}_{duration}',
     checkStreamContentTypeEnable: true,
     checkStreamContentTypeTargetGameNames: 'Art;Just Chatting;',
-    fileNameTemplate: '{channel}_TwitchLive_{date}'
+    fileNameTemplate: '{channel}_TwitchLive_{date}',
+    abortInvalidRecord: true
   }
 
   static defaultStreamerSetting: Omit<Streamer, 'recordSetting'> = {

@@ -57,7 +57,8 @@ export default class ConfigSystem {
     checkStreamContentTypeEnable: false,
     checkStreamContentTypeTargetGameNames: 'Art;Just Chatting;',
     fileNameTemplate:
-      '{streamer}_{streamer_id}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}'
+      '{streamer}_{streamer_id}_TwitchLive_id_{id}_{year}{month}{day}_{hr}{min}{sec}',
+    abortInvalidRecord: true
   }
 
   static explanationRecordSetting: Record<keyof RecordSetting, string> = {
@@ -75,7 +76,9 @@ export default class ConfigSystem {
       'enable check game name; Check VOD and live streams if enabled',
     checkStreamContentTypeTargetGameNames:
       'check stream game names, stop record if not included. Use ";" to separate tags. e.g. Art;Just Chatting',
-    fileNameTemplate: 'specify a default filename for VOD downloads'
+    fileNameTemplate: 'specify a default filename for VOD downloads',
+    abortInvalidRecord:
+      'abort recording stream when streamers change their stream content type which is not specified'
   }
 
   static defaultSetting: Config = {
