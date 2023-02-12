@@ -92,7 +92,7 @@ export default class Download {
         } else {
           // TODO: LOG for retry debug
           // FIXME: manually cancel download in cmd visible mode show clear timeout
-          const { message } = await Download.checkStreamError(cmd)
+          const { message } = await Download.checkStreamError(cmd, filePath)
 
           const isForbidden403 = message.includes('403 Client Error')
 
@@ -121,7 +121,8 @@ export default class Download {
   }
 
   static async checkStreamError(
-    cmd: string
+    cmd: string,
+    filePath: string
   ): Promise<{ message: string; code: null | number }> {
     return new Promise((resolve) => {
       let task: null | cp.ChildProcess = cp.spawn(cmd, [], {
@@ -138,10 +139,16 @@ export default class Download {
       })
 
       task.once('close', (code) => {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+
         task = null
 
         resolve({ message, code })
       })
+
+      setTimeout(() => {
+        if (!task?.killed) killProcess(task?.pid)
+      }, 30 * 1000)
     })
   }
 
