@@ -43,6 +43,8 @@ export interface StreamerStatus {
   isRecording: boolean
   onlineVodID?: string
   isForbidden?: boolean
+  reTryTimes?: number
+  isReachReTryLimit?: boolean
 }
 
 export interface Streamer {

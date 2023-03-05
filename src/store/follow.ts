@@ -200,7 +200,8 @@ export default defineStore('followList', {
 
         await this.updateOnlineStatus(stream, isValidGameName)
 
-        const { isRecording, isForbidden } = this.followList.onlineList[user_id]
+        const { isRecording, isForbidden, isReachReTryLimit } =
+          this.followList.onlineList[user_id]
 
         if (isRecording && !isValidGameName && abortInvalidRecord)
           await Download.abortLiveRecord(stream)
@@ -216,6 +217,7 @@ export default defineStore('followList', {
           isRecording ||
           !enableRecord ||
           !isValidGameName ||
+          isReachReTryLimit ||
           isStopRecordDueToVod ||
           isReachDownloadLimit
 

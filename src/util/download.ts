@@ -2,11 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import cp from 'child_process'
 import FileSystem from './file'
+import { killProcess } from './common'
 import useConfig from '../store/config'
 import useFollow from '../store/follow'
 import useDownload from '../store/download'
-import { killProcess, wait } from './common'
-import { Streamer } from '../types/streamer'
+import { OnlineInfo, Streamer } from '../types/streamer'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
@@ -27,11 +27,7 @@ export default class Download {
     }
   }
 
-  static reTryTimer: Record<Streamer['user_id'], Date> = {}
-
-  static async recordLiveStream(stream: FollowedStream, retry = 0) {
-    if (Download.reTryTimer[stream.user_id]) return
-
+  static async recordLiveStream(stream: FollowedStream) {
     try {
       const follow = useFollow()
       const config = useConfig()
@@ -73,15 +69,15 @@ export default class Download {
 
         const follow = useFollow()
 
-        const isOffline = !follow.followList.onlineList[stream.user_id]
+        const streamer = follow.followList.onlineList[stream.user_id]
 
-        if (isOffline || fs.existsSync(filePath) || code === 0) {
+        if (!streamer || fs.existsSync(filePath) || code === 0) {
           await Promise.all([
             Download.removeDownloadRecord(stream),
             Download.updateStreamerStatus(stream, false)
           ])
-        } else if (retry === 5) {
-          await Download.abortLiveRecord(stream)
+        } else if (streamer.reTryTimes === 5) {
+          await Download.abortLiveRecord(stream, { isReachReTryLimit: true })
 
           const payload = {
             stream,
@@ -91,22 +87,16 @@ export default class Download {
           throw Error(JSON.stringify(payload))
         } else {
           // TODO: LOG for retry debug
-          // FIXME: manually cancel download in cmd visible mode show clear timeout
           const { message } = await Download.checkStreamError(cmd, filePath)
 
           const isForbidden403 = message.includes('403 Client Error')
 
-          await Download.abortLiveRecord(stream, isForbidden403)
+          await Download.abortLiveRecord(stream, {
+            isForbidden: isForbidden403,
+            reTryTimes: (streamer.reTryTimes || 0) + 1
+          })
 
           if (isForbidden403) throw Error('403 Client Error: Forbidden for url')
-
-          Download.reTryTimer[stream.user_id] = new Date()
-
-          await wait(30)
-
-          delete Download.reTryTimer[stream.user_id]
-
-          await Download.recordLiveStream(stream, ++retry)
         }
       }
 
@@ -246,7 +236,10 @@ export default class Download {
     await download.setDownloadList()
   }
 
-  static async abortLiveRecord(stream: FollowedStream, isForbidden = false) {
+  static async abortLiveRecord(
+    stream: FollowedStream,
+    onlineInfo: Partial<OnlineInfo> = {}
+  ) {
     const follow = useFollow()
 
     const download = useDownload()
@@ -255,7 +248,7 @@ export default class Download {
       follow.followList.onlineList[stream.user_id].isRecording = false
 
       // TODO: show 403 in UI
-      follow.followList.onlineList[stream.user_id].isForbidden = isForbidden
+      Object.assign(follow.followList.onlineList[stream.user_id], onlineInfo)
     }
 
     if (download.downloadList.liveStreams[stream.id]) {
