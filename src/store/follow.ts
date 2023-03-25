@@ -161,13 +161,15 @@ export default defineStore('followList', {
 
         if (isStillOnline) continue
 
-        const { onlineVodID } = this.followList.onlineList[user_id]
+        const { onlineVodID, isRecording } = this.followList.onlineList[user_id]
 
         if (onlineVodID) {
           await DownloadSystem.updateVodList(user_id, onlineVodID)
         }
 
-        delete this.followList.onlineList[user_id]
+        // Streamer may offline unexpectedly, so
+        // if stream is recording, onlineList is updated by download cmd
+        if (!isRecording) delete this.followList.onlineList[user_id]
       }
     },
     async handleStreamerOnline(mapList: MapList) {
@@ -204,7 +206,7 @@ export default defineStore('followList', {
           this.followList.onlineList[user_id]
 
         if (isRecording && !isValidGameName && abortInvalidRecord)
-          await Download.abortLiveRecord(stream)
+          await Download.endLiveRecord(stream)
 
         const isReachDownloadLimit =
           limit > 0 &&

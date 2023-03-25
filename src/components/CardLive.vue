@@ -123,7 +123,7 @@ const abortRecord = async () => {
   isProcessing.value = true
 
   try {
-    await DownloadSystem.abortLiveRecord(props.stream)
+    await DownloadSystem.endLiveRecord(props.stream)
   } catch (error) {
     console.error(error)
   } finally {

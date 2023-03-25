@@ -72,12 +72,11 @@ export default class Download {
         const streamer = follow.followList.onlineList[stream.user_id]
 
         if (!streamer || fs.existsSync(filePath) || code === 0) {
-          await Promise.all([
-            Download.removeDownloadRecord(stream),
-            Download.updateStreamerStatus(stream, false)
-          ])
+          await Download.endLiveRecord(stream)
         } else if (streamer.reTryTimes === 5) {
-          await Download.abortLiveRecord(stream, { isReachReTryLimit: true })
+          await Download.endLiveRecord(stream, true, {
+            isReachReTryLimit: true
+          })
 
           const payload = {
             stream,
@@ -91,7 +90,7 @@ export default class Download {
 
           const isForbidden403 = message.includes('403 Client Error')
 
-          await Download.abortLiveRecord(stream, {
+          await Download.endLiveRecord(stream, true, {
             isForbidden: isForbidden403,
             reTryTimes: (streamer.reTryTimes || 0) + 1
           })
@@ -198,16 +197,6 @@ export default class Download {
     await download.setDownloadList()
   }
 
-  static async removeDownloadRecord(stream: FollowedStream) {
-    const download = useDownload()
-
-    if (download.downloadList.liveStreams[stream.id] === undefined) return
-
-    delete download.downloadList.liveStreams[stream.id]
-
-    await download.setDownloadList()
-  }
-
   static async updateStreamerStatus(stream: FollowedStream, status: boolean) {
     const follow = useFollow()
 
@@ -236,8 +225,9 @@ export default class Download {
     await download.setDownloadList()
   }
 
-  static async abortLiveRecord(
+  static async endLiveRecord(
     stream: FollowedStream,
+    keepOnlineInfo: boolean = false,
     onlineInfo: Partial<OnlineInfo> = {}
   ) {
     const follow = useFollow()
@@ -245,10 +235,14 @@ export default class Download {
     const download = useDownload()
 
     if (follow.followList.onlineList[stream.user_id]) {
-      follow.followList.onlineList[stream.user_id].isRecording = false
+      if (keepOnlineInfo) {
+        follow.followList.onlineList[stream.user_id].isRecording = false
 
-      // TODO: show 403 in UI
-      Object.assign(follow.followList.onlineList[stream.user_id], onlineInfo)
+        // TODO: show 403 in UI
+        Object.assign(follow.followList.onlineList[stream.user_id], onlineInfo)
+      } else {
+        delete follow.followList.onlineList[stream.user_id]
+      }
     }
 
     if (download.downloadList.liveStreams[stream.id]) {
