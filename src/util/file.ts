@@ -1,8 +1,17 @@
 import fs from 'fs'
 import path from 'path'
+import { ipcRenderer } from 'electron'
 
 export default class FileSystem {
-  static ROOT_PATH = process.env['ROOT_PATH'] || ''
+  static _ROOT_PATH?: string = undefined
+
+  static get ROOT_PATH() {
+    if (!FileSystem._ROOT_PATH) {
+      FileSystem._ROOT_PATH = path.join(ipcRenderer.sendSync('getAppDataPath'))
+    }
+
+    return FileSystem._ROOT_PATH
+  }
 
   static errorLogPath = path.join(FileSystem.ROOT_PATH, './log')
 
@@ -21,7 +30,10 @@ export default class FileSystem {
 
     FileSystem.makeDirIfNotExist(FileSystem.errorLogPath)
 
-    const filePath = path.join(FileSystem.errorLogPath, `${new Date().getTime()}.json`)
+    const filePath = path.join(
+      FileSystem.errorLogPath,
+      `${new Date().getTime()}.json`
+    )
 
     fs.writeFileSync(filePath, JSON.stringify(log), 'utf8')
   }

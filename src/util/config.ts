@@ -7,11 +7,9 @@ import { Config, GeneralSetting, VodSetting } from '../types/config'
 export default class ConfigSystem {
   static filename = 'configuration'
 
-  static defaultDir = path.join(os.homedir(), 'twitch-live-watcher')
-
   static defaultGeneralSetting: GeneralSetting = {
     checkStreamInterval: 30,
-    dirToSaveRecord: FileSystem.ROOT_PATH || ConfigSystem.defaultDir,
+    dirToSaveRecord: FileSystem.ROOT_PATH,
     numOfDownloadLimit: 0,
     showDownloadCmd: false,
     closeCmdWhenAppStop: false,
