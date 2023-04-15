@@ -159,7 +159,7 @@ export default defineStore('followList', {
       for (const user_id of Object.keys(this.followList.onlineList)) {
         const isStillOnline = mapList.get(user_id) !== undefined
 
-        if (isStillOnline) continue
+        if (isStillOnline || !this.followList.onlineList[user_id]) continue
 
         const { onlineVodID, isRecording } = this.followList.onlineList[user_id]
 
