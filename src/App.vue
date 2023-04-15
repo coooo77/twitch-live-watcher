@@ -39,6 +39,8 @@ onMounted(async () => {
     follow.getFollowList(),
     download.getDownloadList()
   ])
+
+  isWatchOnline.value = config.userConfig.general.autoExecuteOnStartup
 })
 
 window.onbeforeunload = (event) => {

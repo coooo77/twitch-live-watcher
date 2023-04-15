@@ -344,6 +344,30 @@
                     <Explanation :content="general.closeCmdWhenAppStop" />
                   </template>
                 </InputRow>
+
+                <InputRow title="Execute on program startup">
+                  <el-switch
+                    size="small"
+                    v-model="userConfig.general.autoExecuteOnStartup"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.autoExecuteOnStartup" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Automatically execute on program startup">
+                  <el-switch
+                    size="small"
+                    v-model="userConfig.general.autoExecuteOnStartup"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.autoExecuteOnStartup" />
+                  </template>
+                </InputRow>
               </div>
             </el-collapse-item>
 
@@ -420,6 +444,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { ipcRenderer } from 'electron'
 import useConfig from '../store/config'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
@@ -464,6 +489,11 @@ const saveConfig = async () => {
 
     notify.success('configuration saved successfully')
 
+    ipcRenderer.send(
+      'setAutoExeOnComputerStartup',
+      config.userConfig.general.autoExecuteOnComputerStartup
+    )
+
     isConfigChanged.value = false
   } catch (error) {
     console.error(error)
@@ -477,7 +507,11 @@ const assignConfig = async (importData: Config) => {
   await config.setConfig(importData)
 }
 
-const importConfig = async () => await importJSON(assignConfig)
+const importConfig = async () => {
+  await importJSON(assignConfig)
+
+  await saveConfig()
+}
 
 const exportConfig = async () =>
   await exportJSON(userConfig.value, 'config', 'Export Config')
