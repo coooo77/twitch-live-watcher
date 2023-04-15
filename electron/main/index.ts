@@ -261,6 +261,12 @@ class MainProcess {
     ipcMain.on('open:devTool', async (event, args) => {
       MainProcess.openDevTool()
     })
+
+    ipcMain.on('setAutoExeOnComputerStartup', (event, val: boolean) => {
+      app.setLoginItemSettings({
+        openAtLogin: val
+      })
+    })
   }
 
   static listenElectronWindow(browserWindow: BrowserWindow) {

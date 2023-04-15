@@ -1,4 +1,4 @@
-import { RecordSetting } from "./streamer"
+import { RecordSetting } from './streamer'
 
 export interface GeneralSetting {
   /** interval for online check (unit: seconds) */
@@ -13,6 +13,8 @@ export interface GeneralSetting {
   closeCmdWhenAppStop: boolean
   /** automatically execute on program startup. */
   autoExecuteOnStartup: boolean
+  /** Automatically execute on computer startup */
+  autoExecuteOnComputerStartup: boolean
 }
 
 export interface VodSetting {

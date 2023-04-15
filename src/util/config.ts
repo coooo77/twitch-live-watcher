@@ -15,7 +15,8 @@ export default class ConfigSystem {
     numOfDownloadLimit: 0,
     showDownloadCmd: false,
     closeCmdWhenAppStop: false,
-    autoExecuteOnStartup: true
+    autoExecuteOnStartup: true,
+    autoExecuteOnComputerStartup: false
   }
 
   static explanationGeneralSetting: Record<keyof GeneralSetting, string> = {
@@ -26,7 +27,8 @@ export default class ConfigSystem {
     showDownloadCmd: 'show download prompt command',
     closeCmdWhenAppStop:
       'when show download cmd, close download cmd when app is stopped',
-    autoExecuteOnStartup: 'automatically execute on program startup'
+    autoExecuteOnStartup: 'automatically execute on program startup',
+    autoExecuteOnComputerStartup: 'Automatically execute on computer startup'
   }
 
   static defaultVodSetting: VodSetting = {
