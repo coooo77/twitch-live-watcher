@@ -235,6 +235,9 @@ export default class Download {
     const download = useDownload()
 
     if (follow.followList.onlineList[stream.user_id]) {
+      const { onlineVodID } = follow.followList.onlineList[stream.user_id]
+      if (onlineVodID) await this.updateVodList(stream.user_id, onlineVodID)
+
       if (keepOnlineInfo) {
         follow.followList.onlineList[stream.user_id].isRecording = false
 
