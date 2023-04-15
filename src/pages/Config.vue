@@ -507,7 +507,11 @@ const assignConfig = async (importData: Config) => {
   await config.setConfig(importData)
 }
 
-const importConfig = async () => await importJSON(assignConfig)
+const importConfig = async () => {
+  await importJSON(assignConfig)
+
+  await saveConfig()
+}
 
 const exportConfig = async () =>
   await exportJSON(userConfig.value, 'config', 'Export Config')
