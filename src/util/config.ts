@@ -15,7 +15,7 @@ export default class ConfigSystem {
     numOfDownloadLimit: 0,
     showDownloadCmd: false,
     closeCmdWhenAppStop: false,
-    autoExecuteOnStartup: true,
+    autoExecuteOnStartup: false,
     autoExecuteOnComputerStartup: false
   }
 

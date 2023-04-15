@@ -345,7 +345,7 @@
                   </template>
                 </InputRow>
 
-                <InputRow title="Execute on program startup">
+                <InputRow title="Automatically execute on program startup">
                   <el-switch
                     size="small"
                     v-model="userConfig.general.autoExecuteOnStartup"
@@ -357,15 +357,15 @@
                   </template>
                 </InputRow>
 
-                <InputRow title="Automatically execute on program startup">
+                <InputRow title="Automatically execute on computer startup">
                   <el-switch
                     size="small"
-                    v-model="userConfig.general.autoExecuteOnStartup"
+                    v-model="userConfig.general.autoExecuteOnComputerStartup"
                   />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
-                    <Explanation :content="general.autoExecuteOnStartup" />
+                    <Explanation :content="general.autoExecuteOnComputerStartup" />
                   </template>
                 </InputRow>
               </div>
