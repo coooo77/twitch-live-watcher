@@ -344,6 +344,18 @@
                     <Explanation :content="general.closeCmdWhenAppStop" />
                   </template>
                 </InputRow>
+
+                <InputRow title="Execute on program startup">
+                  <el-switch
+                    size="small"
+                    v-model="userConfig.general.autoExecuteOnStartup"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.autoExecuteOnStartup" />
+                  </template>
+                </InputRow>
               </div>
             </el-collapse-item>
 

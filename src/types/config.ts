@@ -11,6 +11,8 @@ export interface GeneralSetting {
   showDownloadCmd: boolean
   /** close cmd when app stop */
   closeCmdWhenAppStop: boolean
+  /** automatically execute on program startup. */
+  autoExecuteOnStartup: boolean
 }
 
 export interface VodSetting {
