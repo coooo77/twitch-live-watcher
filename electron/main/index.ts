@@ -267,6 +267,10 @@ class MainProcess {
         openAtLogin: val
       })
     })
+
+    ipcMain.on('getAppDataPath', (event) => {
+      event.returnValue = app.getPath('userData')
+    })
   }
 
   static listenElectronWindow(browserWindow: BrowserWindow) {
