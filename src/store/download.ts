@@ -72,6 +72,8 @@ export default defineStore('download', {
 
         FileSystem.errorHandler(error)
 
+        console.error(error)
+
         const notify = useNotification()
 
         notify.warn(err.message || 'Unknown error')
