@@ -46,12 +46,7 @@
             @confirm="abortRecord"
           >
             <template #reference>
-              <el-button
-                v-show="!hideAbortBtn"
-                :disabled="isProcessing"
-                size="small"
-                type="danger"
-              >
+              <el-button :disabled="isProcessing" size="small" type="danger">
                 <strong>Abort</strong>
               </el-button>
             </template>
@@ -81,7 +76,6 @@ import DownloadSystem from '../util/download'
 const props = defineProps<{
   stream: FollowedStream
   isRecording: boolean
-  hideAbortBtn: boolean
   upDateTime: Date
 }>()
 
