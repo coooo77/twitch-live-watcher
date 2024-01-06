@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="pageView grid grid-rows-[min-content,1fr] gap-2"
-  >
+  <div class="pageView grid grid-rows-[min-content,1fr] gap-2">
     <div class="controllers flex flex-nowrap gap-2 mb-2">
       <template v-if="follow.isWatchOnline">
         <el-popconfirm
@@ -25,10 +23,10 @@
 
     <div class="onlineList relative">
       <div ref="onlineListEl" class="onlineListEl absolute inset-0">
-        <el-scrollbar v-if="follow.latestOnlineList.length">
+        <el-scrollbar v-if="onlineList.length">
           <div class="cards grid gap-3 p-4">
             <CardLive
-              v-for="stream of follow.latestOnlineList"
+              v-for="stream of onlineList"
               :key="stream.id"
               :stream="stream"
               :isRecording="isRecording(stream.user_id)"
@@ -44,6 +42,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import useFollow from '../store/follow'
 
 const follow = useFollow()
@@ -51,6 +50,23 @@ const follow = useFollow()
 const onlineListEl = ref<HTMLElement>()
 
 const visitTime = ref(new Date())
+
+const onlineList = computed(() => {
+  const copyList = JSON.parse(
+    JSON.stringify(follow.latestOnlineList)
+  ) as typeof follow.latestOnlineList
+
+  copyList.sort((a, b) => {
+    const isRecordingA = isRecording(a.user_id)
+    const isRecordingB = isRecording(b.user_id)
+
+    if (isRecordingA && isRecordingB) return 0
+
+    return isRecordingA ? -1 : 1
+  })
+
+  return copyList
+})
 
 const startOrStopApp = (value: boolean) => {
   follow.isWatchOnline = value
