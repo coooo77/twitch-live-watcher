@@ -15,7 +15,12 @@ import { join } from 'path'
 import fetch from 'node-fetch'
 import type Electron from 'electron'
 import { release, homedir, userInfo } from 'os'
-import { existsSync, readdirSync, writeFileSync } from 'fs'
+import { existsSync, readdirSync, writeFileSync, readFileSync } from 'fs'
+
+interface debugLoggerData {
+  message: string
+  date: string
+}
 
 process.env.DIST_ELECTRON = join(__dirname, '..')
 process.env.DIST = join(process.env.DIST_ELECTRON, '../dist')
@@ -333,10 +338,6 @@ class AuthProcess {
       }
     })
 
-    // const v = { url: AuthService.authenticationURL() }
-
-    // writeFileSync(join(homedir(), 'test.json'), JSON.stringify(v), 'utf8')
-
     AuthProcess.authWindow.loadURL(AuthService.authenticationURL())
 
     // AuthProcess.authWindow.webContents.openDevTools()
@@ -381,6 +382,8 @@ class AuthProcess {
     })
 
     logoutWindow.on('ready-to-show', async () => {
+      AuthService.writeLogger(`ready-to-show logout, remove refresh_token`)
+
       logoutWindow.close()
 
       await AuthService.logout()
@@ -404,6 +407,11 @@ class AuthService {
   public static userName = ''
 
   public static userID = ''
+
+  private static readonly debugLoggerPath = join(
+    app.getPath('userData'),
+    'debugLogger.json'
+  )
 
   public static authenticationURL() {
     return (
@@ -455,9 +463,16 @@ class AuthService {
         AuthService.setKeyChain(refresh_token, AuthService.refreshService)
       ])
 
+      AuthService.writeLogger(`refreshTokens, refresh_token: ${refresh_token}`)
+
       AuthService.accessToken = access_token
     } catch (error) {
-      await AuthService.logout()
+      const e = error as { message: string }
+      AuthService.writeLogger(
+        `refreshTokens error, remove refresh_token, message: ${e?.message}`
+      )
+
+      if (!e?.message.includes('ENOTFOUND')) await AuthService.logout()
 
       // TODO: ERROR LOG
       throw error
@@ -497,8 +512,14 @@ class AuthService {
         AuthService.setKeyChain(refresh_token, AuthService.refreshService)
       ])
 
+      AuthService.writeLogger(`loadTokens, refresh_token: ${refresh_token}`)
+
       AuthService.accessToken = access_token
     } catch (error) {
+      const e = error as { message: string }
+      AuthService.writeLogger(
+        `loadTokens error, remove refresh_token, message: ${e?.message}`
+      )
       await AuthService.logout()
 
       // TODO: ERROR LOG
@@ -538,6 +559,8 @@ class AuthService {
     AuthService.userID = ''
 
     AuthService.userName = ''
+
+    AuthService.writeLogger(`logout, remove refresh_token`)
   }
 
   public static async clearCookie() {
@@ -583,6 +606,29 @@ class AuthService {
     AuthService.userName = data.preferred_username
 
     await AuthService.setKeyChain(AuthService.userID, AuthService.userIDService)
+  }
+
+  private static getLoggerData(): debugLoggerData[] {
+    const isLoggerExist = existsSync(AuthService.debugLoggerPath)
+
+    if (!isLoggerExist) return []
+
+    const loggerData = JSON.parse(
+      readFileSync(AuthService.debugLoggerPath, { encoding: 'utf8' })
+    )
+
+    return loggerData
+  }
+
+  public static writeLogger(message: string) {
+    const data = AuthService.getLoggerData()
+
+    data.push({
+      message,
+      date: new Date().toLocaleString()
+    })
+
+    writeFileSync(AuthService.debugLoggerPath, JSON.stringify(data), 'utf8')
   }
 }
 
