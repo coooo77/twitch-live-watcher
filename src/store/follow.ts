@@ -118,6 +118,8 @@ export default defineStore('followList', {
 
         FileSystem.errorHandler(error)
 
+        console.error(error)
+
         const notify = useNotification()
 
         notify.warn(err.message || 'Unknown error')
@@ -281,7 +283,7 @@ export default defineStore('followList', {
 
       if (!vodEnableRecordVOD) return false
 
-      const haveVod = this.followList.onlineList[user_id].onlineVodID
+      const haveVod = this.followList.onlineList[user_id]?.onlineVodID
 
       return haveVod ? vodIsStopRecordStream : !vodGetStreamIfNoVod
     },

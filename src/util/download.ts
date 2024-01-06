@@ -121,11 +121,15 @@ export default class Download {
 
       let message = ''
 
+      const msgHandler = (chunk: any) => {
+        message += chunk
+      }
+
       task.stdout?.setEncoding('utf-8')
 
-      task.stdout?.on('data', (chunk) => {
-        message += chunk
-      })
+      task.stdout?.on('data', msgHandler)
+
+      task.stderr?.on('data', msgHandler)
 
       task.once('close', (code) => {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
@@ -141,11 +145,17 @@ export default class Download {
     })
   }
 
-  static getDownloadCmd(sourceUrl: string, filePath: string, isLive = true) {
+  static getDownloadCmd(
+    sourceUrl: string,
+    filePath: string,
+    isLive = true
+  ) {
     const { dir } = path.parse(filePath)
     FileSystem.makeDirIfNotExist(dir)
 
-    const liveSetting = isLive ? `--twitch-disable-hosting ` : ''
+    const liveSetting = isLive
+      ? `--twitch-disable-hosting --twitch-disable-ads --twitch-disable-reruns `
+      : ''
     return `streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
   }
 
@@ -277,7 +287,11 @@ export default class Download {
 
     const list = download.downloadList
 
-    list.vodList.queue.push(...downloadItems)
+    const existVodIds = list.vodList.queue.map((video) => video.videoID)
+
+    list.vodList.queue.push(
+      ...downloadItems.filter((item) => !existVodIds.includes(item.videoID))
+    )
 
     await download.setDownloadList(list)
   }
@@ -329,19 +343,14 @@ export default class Download {
 
         const day = isExpired ? timeNow.getDate() + 1 : timeNow.getDate()
 
-        const hour = timeZone.getHours()
-
-        const min = timeZone.getMinutes()
-
-        const sec = timeZone.getSeconds()
-
         return new Date(
           timeNow.getFullYear(),
-          timeNow.getHours(),
+          timeNow.getMonth() + 1,
           day,
-          hour,
-          min,
-          sec
+          timeNow.getHours(),
+          timeZone.getHours(),
+          timeZone.getMinutes(),
+          timeZone.getSeconds()
         ).toJSON()
 
       case 'queue':
