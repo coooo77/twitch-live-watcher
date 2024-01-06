@@ -23,18 +23,18 @@
         :title="stream.title"
         class="title truncate col-span-full font-bold text-themeColor4"
       >
-        {{ stream.title }}
+        {{ stream.title }}&thinsp; 
       </div>
 
       <div
         :title="liveCardHost"
         class="userName truncate col-span-full font-bold text-themeColor4 whitespace-nowrap"
       >
-        {{ liveCardHost }}
+        {{ liveCardHost }}&thinsp; 
       </div>
 
       <div class="tag truncate font-bold text-themeColor4">
-        {{ stream.game_name }}
+        {{ stream.game_name }}&thinsp; 
       </div>
 
       <div
