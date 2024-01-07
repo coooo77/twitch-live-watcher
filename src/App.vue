@@ -34,6 +34,8 @@ watch(isWatchOnline, (newVal, oldVal) => {
 })
 
 onMounted(async () => {
+  ipcRenderer.send('init:app')
+
   await Promise.all([
     config.getConfig(),
     follow.getFollowList(),
@@ -68,6 +70,13 @@ window.onbeforeunload = (event) => {
   }
 }
 
+/* login twitch */
+const isAuthorized = ref(true)
+
+ipcRenderer.on('authStatus', (event, arg) => (isAuthorized.value = arg))
+
+const openLoginPage = () => ipcRenderer.send('open:auth')
+
 /**
  * TODO:
  * save config to store
@@ -77,16 +86,36 @@ window.onbeforeunload = (event) => {
 
 <template>
   <Layout>
-    <Menu />
-    <div class="pageView grow grid grid-rows-[min-content,1fr]">
-      <div
-        class="pageTitle select-none border-b-[9px] text-[50px] font-bold text-themeColor4 leading-[60px] mb-4 sm:text-[72px] sm:leading-[90px]"
-        @click.ctrl.shift="openDev"
-      >
-        {{ route.meta.title }}
+    <template v-if="!isAuthorized">
+      <div class="absolute inset-0 flex pointer-events-none">
+        <div class="flex flex-col items-center gap-y-4 m-auto">
+          <div class="font-bold text-2xl text-themeColor4 tracking-wider">
+            Authorization required, login first
+          </div>
+          <el-button
+            color="#576F72"
+            class="tracking-wider text-lg pointer-events-auto"
+            type="primary"
+            size="large"
+            @click="openLoginPage"
+            >Login Twitch
+          </el-button>
+        </div>
       </div>
-      <RouterView />
-    </div>
+    </template>
+
+    <template v-else>
+      <Menu />
+      <div class="pageView grow grid grid-rows-[min-content,1fr]">
+        <div
+          class="pageTitle select-none border-b-[9px] text-[50px] font-bold text-themeColor4 leading-[60px] mb-4 sm:text-[72px] sm:leading-[90px]"
+          @click.ctrl.shift="openDev"
+        >
+          {{ route.meta.title }}
+        </div>
+        <RouterView />
+      </div>
+    </template>
   </Layout>
 
   <Notification />

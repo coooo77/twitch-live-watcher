@@ -17,3 +17,13 @@
 .insetShadow {
   box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25)
 }
+
+/* @see https://juejin.cn/post/7083783155303317512 */
+@layer base {
+  button,
+  [type='button'],
+  [type='reset'],
+  [type='submit'] {
+    background-color: var(--el-button-bg-color);
+  }
+}

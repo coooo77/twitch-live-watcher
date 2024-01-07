@@ -6,10 +6,10 @@ import {
   session,
   Notification,
   BrowserWindow,
-  WebRequestFilter,
   OpenDialogSyncOptions,
   SaveDialogSyncOptions
 } from 'electron'
+import http from 'http'
 import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
@@ -173,11 +173,24 @@ class MainProcess {
   }
 
   static listenIpcMain() {
-    const onEvent = ['navbar', 'logout', 'notify:online']
+    // TODO: 改為 object
+    const onEvent = ['navbar', 'logout', 'notify:online', 'open:auth']
 
     onEvent.forEach((event) => ipcMain?.off(event, () => {}))
 
-    const handleEvent = ['open-win', 'showOpenDialog', 'showSaveDialog']
+    const handleEvent = [
+      'open-win',
+      'showOpenDialog',
+      'showSaveDialog',
+      'getAccessToken',
+      'getUserID',
+      'refreshTokens',
+      'logout',
+      'open:auth',
+      'setAutoExeOnComputerStartup',
+      'getAppDataPath',
+      'notify:online'
+    ]
 
     handleEvent.forEach((event) => ipcMain?.removeHandler(event))
 
@@ -216,6 +229,20 @@ class MainProcess {
       dialog.showSaveDialogSync(args)
     )
 
+    ipcMain.on('open:auth', (event, args) => {
+      AuthProcess.loginTwitch()
+    })
+
+    ipcMain.on('init:app', async () => {
+      try {
+        await AuthService.refreshTokens()
+
+        await AuthService.getUserInfo()
+      } catch (error) {
+        MainProcess.setAuthReadyStatus(false)
+      }
+    })
+
     ipcMain.on('navbar', (event, val: 'mini' | 'restore' | 'close') => {
       const window: Electron.BrowserWindow | null =
         BrowserWindow.fromWebContents(event.sender)
@@ -243,10 +270,6 @@ class MainProcess {
 
     ipcMain.on('logout', async (event, args) => {
       await AuthService.logout()
-
-      MainProcess.destroyAppWin()
-
-      AuthProcess.createAuthWindow()
     })
 
     ipcMain.on('notify:online', (event, args) => {
@@ -305,89 +328,62 @@ class MainProcess {
     })
   }
 
-  static destroyAppWin() {
-    if (!MainProcess.electronWindow) return
-
-    MainProcess.electronWindow.close()
-
-    MainProcess.electronWindow = null
-  }
-
-  static init() {
+  static async init() {
     MainProcess.beforeInit()
 
-    app.whenReady().then(MainProcess.createWindow)
+    await app.whenReady()
+
+    await MainProcess.createWindow()
 
     MainProcess.listenApp()
 
     MainProcess.listenIpcMain()
   }
+
+  static setAuthReadyStatus(isAuthReady: boolean) {
+    MainProcess.electronWindow?.webContents.send('authStatus', isAuthReady)
+  }
 }
 
 class AuthProcess {
-  public static authWindow: null | BrowserWindow = null
+  public static server: http.Server | null = null
 
-  public static createAuthWindow() {
-    AuthProcess.destroyAuthWin()
+  private static setServer() {
+    if (AuthProcess.server) return
 
-    AuthProcess.authWindow = new BrowserWindow({
-      width: 480,
-      height: 800,
-      webPreferences: {
-        nodeIntegration: false
-      }
+    return new Promise<void>((res, rej) => {
+      AuthProcess.server = http.createServer(async (request, response) => {
+        if (!request.url?.includes('state')) return
+
+        await AuthProcess.handleRequest(
+          `http://${request.headers.host}${request.url}`
+        )
+
+        response.statusCode = 200
+        response.setHeader('Content-Type', 'text/html')
+        response.end(`<h1>Login successfully, you can close tab now.</h1>`)
+
+        MainProcess.setAuthReadyStatus(true)
+        AuthProcess.server.close()
+        AuthProcess.server = null
+      })
+
+      AuthProcess.server.listen(3000, res)
     })
-
-    AuthProcess.authWindow.loadURL(AuthService.authenticationURL())
-
-    // AuthProcess.authWindow.webContents.openDevTools()
-
-    const {
-      session: { webRequest }
-    } = AuthProcess.authWindow.webContents
-
-    const filter: WebRequestFilter = {
-      urls: [`${import.meta.env['VITE_REDIRECT_URL']}*`]
-    }
-
-    webRequest.onBeforeRequest(
-      filter,
-      AuthProcess.handleRequest.bind(AuthProcess)
-    )
-
-    AuthProcess.authWindow.once('closed', () => (AuthProcess.authWindow = null))
   }
 
-  private static async handleRequest(param: { url: string }) {
-    await AuthService.loadTokens(param.url)
+  public static async loginTwitch() {
+    MainProcess.setAuthReadyStatus(false)
+
+    await AuthProcess.setServer()
+
+    await shell.openExternal(AuthService.authenticationURL())
+  }
+
+  private static async handleRequest(url: string) {
+    await AuthService.loadTokens(url)
 
     await AuthService.getUserInfo()
-
-    MainProcess.init()
-
-    return AuthProcess.destroyAuthWin()
-  }
-
-  private static destroyAuthWin() {
-    if (!AuthProcess.authWindow) return
-
-    AuthProcess.authWindow.close()
-
-    AuthProcess.authWindow = null
-  }
-
-  public static createLogoutWindow() {
-    const logoutWindow = new BrowserWindow({
-      show: false
-    })
-
-    logoutWindow.on('ready-to-show', async () => {
-      AuthService.writeLogger(`ready-to-show logout, remove refresh_token`)
-
-      logoutWindow.close()
-
-      await AuthService.logout()
-    })
   }
 }
 
@@ -396,11 +392,17 @@ class AuthService {
 
   private static readonly keytarAccount = userInfo().username
 
-  private static readonly userIDService = 'userID'
+  private static readonly userIDService = app.isPackaged
+    ? 'userID'
+    : 'devUserID'
 
-  private static readonly accessService = 'accessToken'
+  private static readonly accessService = app.isPackaged
+    ? 'accessToken'
+    : 'devAccessToken'
 
-  private static readonly refreshService = 'refreshToken'
+  private static readonly refreshService = app.isPackaged
+    ? 'refreshToken'
+    : 'devRefreshToken'
 
   public static accessToken = ''
 
@@ -527,10 +529,7 @@ class AuthService {
     }
   }
 
-  private static async setKeyChain(
-    token: string,
-    type: 'refreshToken' | 'accessToken' | 'userID'
-  ) {
+  private static async setKeyChain(token: string, type: string) {
     if (!token) return
 
     await keytar.setPassword(type, AuthService.keytarAccount, token)
@@ -561,6 +560,8 @@ class AuthService {
     AuthService.userName = ''
 
     AuthService.writeLogger(`logout, remove refresh_token`)
+
+    MainProcess.setAuthReadyStatus(false)
   }
 
   public static async clearCookie() {
@@ -635,14 +636,4 @@ class AuthService {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', async () => {
-  try {
-    await AuthService.refreshTokens()
-
-    await AuthService.getUserInfo()
-
-    MainProcess.init()
-  } catch (error) {
-    AuthProcess.createAuthWindow()
-  }
-})
+app.on('ready', MainProcess.init)
