@@ -229,18 +229,20 @@ class MainProcess {
       dialog.showSaveDialogSync(args)
     )
 
-    ipcMain.on('open:auth', (event, args) => {
-      AuthProcess.loginTwitch()
-    })
-
-    ipcMain.on('init:app', async () => {
+    ipcMain.handle('init:app', async () => {
       try {
         await AuthService.refreshTokens()
 
         await AuthService.getUserInfo()
+
+        return true
       } catch (error) {
-        MainProcess.setAuthReadyStatus(false)
+        return false
       }
+    })
+
+    ipcMain.on('open:auth', (event, args) => {
+      AuthProcess.loginTwitch()
     })
 
     ipcMain.on('navbar', (event, val: 'mini' | 'restore' | 'close') => {

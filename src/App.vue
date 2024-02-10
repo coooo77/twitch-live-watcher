@@ -33,16 +33,26 @@ watch(isWatchOnline, (newVal, oldVal) => {
   download.setCheckDownloadTimer()
 })
 
+const isAuthorized = ref(false)
+
+const isLoadingApp = ref(true)
+
 onMounted(async () => {
-  ipcRenderer.send('init:app')
+  try {
+    isAuthorized.value = await ipcRenderer.invoke('init:app')
 
-  await Promise.all([
-    config.getConfig(),
-    follow.getFollowList(),
-    download.getDownloadList()
-  ])
+    await Promise.all([
+      config.getConfig(),
+      follow.getFollowList(),
+      download.getDownloadList()
+    ])
 
-  isWatchOnline.value = config.userConfig.general.autoExecuteOnStartup
+    isWatchOnline.value = config.userConfig.general.autoExecuteOnStartup
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoadingApp.value = false
+  }
 })
 
 window.onbeforeunload = (event) => {
@@ -71,8 +81,6 @@ window.onbeforeunload = (event) => {
 }
 
 /* login twitch */
-const isAuthorized = ref(true)
-
 ipcRenderer.on('authStatus', (event, arg) => (isAuthorized.value = arg))
 
 const openLoginPage = () => ipcRenderer.send('open:auth')
@@ -89,17 +97,29 @@ const openLoginPage = () => ipcRenderer.send('open:auth')
     <template v-if="!isAuthorized">
       <div class="absolute inset-0 flex pointer-events-none">
         <div class="flex flex-col items-center gap-y-4 m-auto">
-          <div class="font-bold text-2xl text-themeColor4 tracking-wider">
-            Authorization required, login first
-          </div>
-          <el-button
-            color="#576F72"
-            class="tracking-wider text-lg pointer-events-auto"
-            type="primary"
-            size="large"
-            @click="openLoginPage"
-            >Login Twitch
-          </el-button>
+          <template v-if="isLoadingApp">
+            <div
+              class="font-bold text-2xl text-themeColor4 tracking-wider px-2 text-center"
+            >
+              Initiation App ...
+            </div>
+          </template>
+
+          <template v-else>
+            <div
+              class="font-bold text-2xl text-themeColor4 tracking-wider px-2 text-center"
+            >
+              Authorization required, login first
+            </div>
+            <el-button
+              color="#576F72"
+              class="tracking-wider text-lg pointer-events-auto"
+              type="primary"
+              size="large"
+              @click="openLoginPage"
+              >Login Twitch
+            </el-button>
+          </template>
         </div>
       </div>
     </template>
