@@ -32,14 +32,19 @@
       </div>
     </div>
 
-    <div
-      class="footer grid grid-rows-[min-content,min-content,min-content] gap-1 p-2"
-    >
+    <div class="footer grid grid-rows-[repeat(5,min-content)] gap-1 p-2">
       <div
         :title="video.title"
         class="title text-themeColor4 font-bold whitespace-nowrap truncate"
       >
         {{ video.title }}
+      </div>
+
+      <div
+        class="author text-themeColor4 font-bold whitespace-nowrap truncate cursor-pointer"
+        @click="openUrl(`https://www.twitch.tv/${user_login}`)"
+      >
+        {{ user_login }}
       </div>
 
       <div
@@ -55,7 +60,7 @@
             @confirm="cancelDownload"
           >
             <template #reference>
-              <el-button v-show="!hideAbortBtn" class="w-full" type="danger">
+              <el-button :disabled="hideAbortBtn" class="w-full" type="danger">
                 <strong>CANCEL</strong>
               </el-button>
             </template>
@@ -137,7 +142,7 @@ const props = defineProps<{
   hideAbortBtn: boolean
 }>()
 
-const { thumbnail_url, validDownloadTime } = toRefs(props.video)
+const { thumbnail_url, validDownloadTime, user_login } = toRefs(props.video)
 
 const { imgUrl, displayTime } = getUrlAndPublish(
   thumbnail_url.value,
