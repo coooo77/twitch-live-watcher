@@ -37,9 +37,11 @@ const isAuthorized = ref(false)
 
 const isLoadingApp = ref(true)
 
-onMounted(async () => {
+watch(isAuthorized, async (value) => {
+  if (!value) return
+
   try {
-    isAuthorized.value = await ipcRenderer.invoke('init:app')
+    isLoadingApp.value = true
 
     await Promise.all([
       config.getConfig(),
@@ -48,6 +50,16 @@ onMounted(async () => {
     ])
 
     isWatchOnline.value = config.userConfig.general.autoExecuteOnStartup
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isLoadingApp.value = false
+  }
+})
+
+onMounted(async () => {
+  try {
+    isAuthorized.value = await ipcRenderer.invoke('init:app')
   } catch (error) {
     console.error(error)
   } finally {

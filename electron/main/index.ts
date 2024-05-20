@@ -213,7 +213,10 @@ class MainProcess {
 
     ipcMain.handle('getAccessToken', () => AuthService.accessToken)
 
-    ipcMain.handle('getUserID', () => AuthService.userID)
+    ipcMain.handle('getUserID', async () => {
+      if (!AuthService.userID) await AuthService.getUserInfo()
+      return AuthService.userID
+    })
 
     ipcMain.handle('refreshTokens', async () => {
       await AuthService.refreshTokens()
