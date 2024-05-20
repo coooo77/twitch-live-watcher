@@ -23,8 +23,9 @@
         @click="goToPage(item.name)"
       >
         <Icon
+          v-if=item.meta?.menuIcon
           class="text-themeColor4 min-w-[30px]"
-          :icon="item.meta?.menuIcon"
+          :icon="item.meta.menuIcon"
           :width="iconSize"
           :height="iconSize"
         />
