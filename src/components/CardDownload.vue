@@ -60,7 +60,7 @@
             @confirm="cancelDownload"
           >
             <template #reference>
-              <el-button :disabled="hideAbortBtn" class="w-full" type="danger">
+              <el-button class="w-full" type="danger">
                 <strong>CANCEL</strong>
               </el-button>
             </template>
