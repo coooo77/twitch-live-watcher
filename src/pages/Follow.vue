@@ -110,7 +110,9 @@ const dialogStreamer = ref<Streamer>(StreamerSystem.defaultStreamer)
 const followStreamers = computed(() => {
   const list = Object.values(followList.value.streamers)
   return filterValue.value
-    ? list.filter(({ user_login }) => user_login.toLowerCase().includes(filterValue.value.toLowerCase()))
+    ? list.filter(({ user_login }) =>
+        user_login.toLowerCase().includes(filterValue.value.toLowerCase())
+      )
     : list
 })
 

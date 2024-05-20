@@ -3,6 +3,7 @@
     v-model="_inputValue"
     :disabled="disableInput"
     :placeholder="placeholder"
+    @enter="$emit('filter')"
   >
     <template #icon>
       <div class="icons flex item-center ml-auto">
