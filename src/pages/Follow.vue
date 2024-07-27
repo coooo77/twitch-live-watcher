@@ -66,15 +66,13 @@
 import { storeToRefs } from 'pinia'
 import useFollow from '../store/follow'
 import useConfig from '../store/config'
+import { ElMessage } from 'element-plus'
 import StreamerSystem from '../util/streamers'
 import { handleJsonFile } from '../composable/common'
-import { useNotification } from '../store/notification'
 import { getUsers, GetUsersResponse } from '../api/user'
 import { FollowList, Streamer } from '../types/streamer'
 
 const forceScrollUpdate = ref(new Date().toJSON())
-
-const notify = useNotification()
 
 const { importJSON, exportJSON } = handleJsonFile()
 
@@ -237,7 +235,10 @@ const updateFollowList = async (newStreamers: Streamer[]) => {
     ? 'Update streamers successfully'
     : 'Failed to update streamers'
 
-  notify.send(status)
+  ElMessage({
+    message: status,
+    type: isUpdateSuccess ? 'success' : 'error'
+  })
 }
 
 const addStreamerToFollowList = async () => {
@@ -246,7 +247,13 @@ const addStreamerToFollowList = async () => {
   try {
     const streamers = await getStreamers()
 
-    if (streamers.length === 0) return notify.send('No streamers were found')
+    if (streamers.length === 0) {
+      ElMessage({
+        message: 'No streamers were found',
+        type: 'warning'
+      })
+      return
+    }
 
     const newStreamers = transformStreamerData(streamers)
 
@@ -290,7 +297,7 @@ const updateStreamerProfileImg = async (streamer: GetUsersResponse) => {
 }
 
 const filterStreamer = () => {
-  filterValue.value = searchValue.value
+  filterValue.value = searchValue.value.trim()
 
   searchValue.value = ''
 

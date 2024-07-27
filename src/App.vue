@@ -5,7 +5,6 @@ import { ipcRenderer } from 'electron'
 import useFollow from './store/follow'
 import useConfig from './store/config'
 import useDownload from './store/download'
-import Notification from './components/Notification.vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 
@@ -149,8 +148,6 @@ const openLoginPage = () => ipcRenderer.send('open:auth')
       </div>
     </template>
   </Layout>
-
-  <Notification />
 </template>
 
 <style>

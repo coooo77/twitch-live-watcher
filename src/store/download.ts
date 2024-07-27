@@ -2,8 +2,8 @@ import useConfig from './config'
 import { defineStore } from 'pinia'
 import FileSystem from '../util/file'
 import ModelSystem from '../util/model'
+import { ElMessage } from 'element-plus'
 import DownloadSystem from '../util/download'
-import { useNotification } from './notification'
 import { DownloadItem, DownloadList } from '../types/download'
 
 interface State {
@@ -74,9 +74,10 @@ export default defineStore('download', {
 
         console.error(error)
 
-        const notify = useNotification()
-
-        notify.warn(err.message || 'Unknown error')
+        ElMessage({
+          message: err.message || 'Unknown error',
+          type: 'warning'
+        })
 
         await this.clearTimer()
       }

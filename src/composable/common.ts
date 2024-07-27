@@ -4,11 +4,9 @@ import {
   getImportJSONPath
 } from '../util/common'
 import fs from 'fs'
-import { useNotification } from '../store/notification'
+import { ElMessage } from 'element-plus'
 
 export function handleJsonFile() {
-  const notify = useNotification()
-
   const importJSON = async (callback: (importData: any) => Promise<void>) => {
     const jsonPath = await getImportJSONPath()
 
@@ -23,15 +21,25 @@ export function handleJsonFile() {
 
       await callback(importData)
 
-      notify.success('configuration imported successfully')
+      ElMessage({
+        message: 'configuration imported successfully',
+        type: 'success'
+      })
     } catch (error) {
       console.error(error)
 
-      notify.warn('fail to import configuration')
+      ElMessage({
+        message: 'fail to import configuration',
+        type: 'error'
+      })
     }
   }
 
-  const exportJSON = async (exportData: any, defaultFilename: string, cmdTitle: string) => {
+  const exportJSON = async (
+    exportData: any,
+    defaultFilename: string,
+    cmdTitle: string
+  ) => {
     try {
       const { pre, post } = timeString()
 
@@ -43,11 +51,17 @@ export function handleJsonFile() {
 
       fs.writeFileSync(jsonPath, JSON.stringify(exportData))
 
-      notify.success('configuration exported successfully')
+      ElMessage({
+        message: 'configuration exported successfully',
+        type: 'success'
+      })
     } catch (error) {
       console.error(error)
 
-      notify.warn('fail to export configuration')
+      ElMessage({
+        message: 'fail to export configuration',
+        type: 'error'
+      })
     }
   }
 

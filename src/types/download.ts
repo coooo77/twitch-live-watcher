@@ -1,5 +1,6 @@
-import { DateStringType } from './commonTypes'
+import { IVod } from '../api/user'
 import { VODRecordMode } from './streamer'
+import { DateStringType } from './commonTypes'
 
 export type StreamID = string
 
@@ -20,7 +21,7 @@ export interface DownloadItem {
   note?: string
   dirToSaveRecord?: string
   status: DownloadStatus
-  thumbnail_url: string,
+  thumbnail_url: string
   title: string
 }
 
@@ -45,4 +46,9 @@ export interface LiveStreams {
 export interface DownloadList {
   liveStreams: LiveStreams
   vodList: VodDownload
+}
+
+export interface VideoSearched {
+  video: IVod
+  downloadItem: DownloadItem
 }

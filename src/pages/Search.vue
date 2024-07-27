@@ -45,19 +45,19 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import useConfig from '../store/config'
 import { Config } from '../types/config'
+import { ElMessage } from 'element-plus'
 import DownloadSystem from '../util/download'
-import { DownloadItem } from '../types/download'
-import { useNotification } from '../store/notification'
+import useSearchResult from '../store/searchResult'
 import { getFullVideos, getUsers, IVod } from '../api/user'
-
-export interface VideoSearched {
-  video: IVod
-  downloadItem: DownloadItem
-}
+import { DownloadItem, VideoSearched } from '../types/download'
 
 const configStore = useConfig()
+const searchResultStore = useSearchResult()
+
+const { videosSearched } = storeToRefs(searchResultStore)
 
 const config = ref<Config>()
 
@@ -81,13 +81,9 @@ const videoToEdit = ref<DownloadItem>({
   duration: ''
 })
 
-const notify = useNotification()
-
 const isSearching = ref(false)
 
 const searchValue = ref('')
-
-const videosSearched = ref<VideoSearched[]>([])
 
 const openAddDialog = (item: DownloadItem) => {
   videoToEdit.value = item
@@ -113,11 +109,23 @@ const searchVod = async () => {
 
     const streamer = await getStreamer()
 
-    if (streamer.length === 0) return notify.send('Streamer not found')
+    if (streamer.length === 0) {
+      ElMessage({
+        message: 'Streamer not found',
+        type: 'warning'
+      })
+      return
+    }
 
     const videos = await getFullVideos({ user_id: streamer[0].id })
 
-    if (videos.length === 0) return notify.send('No videos available')
+    if (videos.length === 0) {
+      ElMessage({
+        message: 'No videos available',
+        type: 'warning'
+      })
+      return
+    }
 
     videosSearched.value = await makeDownloadItem(videos)
   } catch (error) {

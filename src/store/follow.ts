@@ -5,9 +5,9 @@ import FileSystem from '../util/file'
 import { ipcRenderer } from 'electron'
 import ModelSystem from '../util/model'
 import Download from '../util/download'
+import { ElMessage } from 'element-plus'
 import DownloadSystem from '../util/download'
 import StreamerSystem from '../util/streamers'
-import { useNotification } from './notification'
 import { FollowList, Streamer } from '../types/streamer'
 import { getFollowedStreams, FollowedStream, getVideos } from '../api/user'
 
@@ -120,9 +120,10 @@ export default defineStore('followList', {
 
         console.error(error)
 
-        const notify = useNotification()
-
-        notify.warn(err.message || 'Unknown error')
+        ElMessage({
+          message: err.message || 'Unknown error',
+          type: 'warning'
+        })
       } finally {
         this.checkTimer = window.setTimeout(
           this.setCheckOnlineTimer,

@@ -70,10 +70,10 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import useDownload from '../store/download'
 import { getDirPath } from '../util/common'
 import { DownloadItem } from '../types/download';
-import { useNotification } from '../store/notification'
 
 const props = defineProps<{
   item: DownloadItem
@@ -81,8 +81,6 @@ const props = defineProps<{
 }>()
 
 const isProcessing = ref(false)
-
-const notify = useNotification()
 
 const download = useDownload()
 
@@ -112,7 +110,10 @@ const addVideo = async () => {
 
     const msg = result ? 'Add video successfully' : 'Fail to add video'
   
-    notify.send(msg, result)
+    ElMessage({
+      message: msg,
+      type: result ? 'success' : 'error'
+    })
   
     closeDialog()
   } catch (error) {

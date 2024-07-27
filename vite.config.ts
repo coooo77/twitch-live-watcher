@@ -86,6 +86,7 @@ export default defineConfig(({ command }) => {
         dts: './src/components.d.ts'
       }),
       AutoImport({
+        resolvers: [ElementPlusResolver()],
         // targets to transform
         include: [
           /\.[tj]sx?$/, // .ts, .tsx, .js, .jsx
