@@ -14,28 +14,28 @@
     "node": "^14.18.0 || >=16.0.0"
   },
   "devDependencies": {
-    "@iconify/vue": "^4.0.2",
-    "@vitejs/plugin-vue": "^4.0.0",
-    "autoprefixer": "^10.4.13",
-    "axios": "^1.2.3",
-    "electron": "^22.0.0",
-    "electron-builder": "^23.6.0",
-    "element-plus": "^2.2.28",
-    "pinia": "^2.0.29",
-    "postcss": "^8.4.21",
-    "prettier": "^2.8.3",
-    "sass": "^1.57.1",
-    "tailwindcss": "^3.2.4",
-    "typescript": "^4.9.4",
-    "unplugin-auto-import": "^0.12.1",
-    "unplugin-vue-components": "^0.22.12",
-    "vite": "^4.0.3",
-    "vite-plugin-electron": "^0.11.1",
-    "vite-plugin-electron-renderer": "^0.11.4",
-    "vite-plugin-esmodule": "^1.4.4",
-    "vue": "^3.2.45",
-    "vue-router": "^4.1.6",
-    "vue-tsc": "^1.0.16"
+    "@iconify/vue": "^4.1.2",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "autoprefixer": "^10.4.19",
+    "axios": "^1.7.1",
+    "electron": "^30.0.6",
+    "electron-builder": "^24.13.3",
+    "element-plus": "^2.7.3",
+    "pinia": "^2.1.7",
+    "postcss": "^8.4.38",
+    "prettier": "^3.2.5",
+    "sass": "^1.77.2",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "unplugin-auto-import": "^0.17.6",
+    "unplugin-vue-components": "^0.27.0",
+    "vite": "^5.2.11",
+    "vite-plugin-electron": "^0.28.7",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vite-plugin-esmodule": "^1.5.0",
+    "vue": "^3.4.27",
+    "vue-router": "^4.3.2",
+    "vue-tsc": "^2.0.19"
   },
   "debug": {
     "env": {
@@ -51,6 +51,7 @@
   ],
   "dependencies": {
     "keytar": "^7.9.0",
-    "node-fetch": "^3.3.0"
+    "lodash-es": "^4.17.21",
+    "node-fetch": "^3.3.2"
   }
 }

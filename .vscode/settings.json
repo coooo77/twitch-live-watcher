@@ -3,12 +3,19 @@
   "typescript.tsc.autoDetect": "off",
   "json.schemas": [
     {
-      "fileMatch": [
-        "/*electron-builder.json5",
-        "/*electron-builder.json"
-      ],
+      "fileMatch": ["/*electron-builder.json5", "/*electron-builder.json"],
       "url": "https://json.schemastore.org/electron-builder"
     }
   ],
-  "cSpell.words": ["pinia"]
+  "cSpell.words": [
+    "esmodule",
+    "ffprobe",
+    "iconify",
+    "nokey",
+    "noprint",
+    "pinia",
+    "streamlink",
+    "tailwindcss",
+    "unplugin"
+  ]
 }
