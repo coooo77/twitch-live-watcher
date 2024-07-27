@@ -45,7 +45,7 @@ export default class Download {
           minResolutionThreshold
         }
       } = config.userConfig
-      const { user_login, recordSetting } =
+      const { user_login, recordSetting, resolutionById } =
         follow.followList.streamers[stream.user_id]
 
       const filename = Download.getStreamFilename(
@@ -62,15 +62,26 @@ export default class Download {
         shell: true
       })
 
-      const checkVideoQuality = () => {
+      const checkVideoQuality = async () => {
         if (!fs.existsSync(filePath)) {
           window.setTimeout(checkVideoQuality, 1000, 10)
           return
         }
 
         const { height } = Download.getResolution(filePath)
-        if (height === null || height < minResolutionThreshold)
-          killProcess(task?.pid)
+
+        if (height === null) return killProcess(task?.pid)
+
+        const previousResolution = resolutionById?.[stream.id] || 0
+        const minRes = Math.max(minResolutionThreshold, previousResolution)
+
+        if (height < minRes) killProcess(task?.pid)
+
+        if (height <= previousResolution) return
+        follow.followList.streamers[stream.user_id].resolutionById = {
+          [stream.id]: height
+        }
+        await follow.setFollowList()
       }
 
       const spawnFn = async () => {

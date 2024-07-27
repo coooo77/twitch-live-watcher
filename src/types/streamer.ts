@@ -47,6 +47,10 @@ export interface StreamerStatus {
   isReachReTryLimit?: boolean
 }
 
+type StreamId = string
+
+type Resolution = number
+
 export interface Streamer {
   /** twitch user login account */
   user_login: string
@@ -56,6 +60,7 @@ export interface Streamer {
   offlineImg: string
   status: UserStatus
   recordSetting: RecordSetting
+  resolutionById?: Record<StreamId, Resolution>
 }
 
 export type Streamers = Record<Streamer['user_id'], Streamer>
