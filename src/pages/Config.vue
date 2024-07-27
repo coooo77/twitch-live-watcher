@@ -5,7 +5,7 @@
     element-loading-background="transparent"
     element-loading-text="Loading..."
   >
-    <div class="controllers mb-2">
+    <div class="controllers mb-2 flex flex-wrap gap-y-2">
       <el-button
         color="#576F72"
         plain
@@ -48,7 +48,7 @@
                 <InputRow title="Enable Record">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.enableRecord"
+                    v-model="userConfigCloned.record.enableRecord"
                   />
 
                   <template #popIcon>
@@ -59,7 +59,7 @@
                 <InputRow title="Enable Notify">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.enableNotify"
+                    v-model="userConfigCloned.record.enableNotify"
                   />
 
                   <template #popIcon>
@@ -70,7 +70,7 @@
                 <InputRow title="Enable Record VOD">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.vodEnableRecordVOD"
+                    v-model="userConfigCloned.record.vodEnableRecordVOD"
                   />
 
                   <template #popIcon>
@@ -81,7 +81,7 @@
                 <InputRow title="Is Stop Record Stream">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.vodIsStopRecordStream"
+                    v-model="userConfigCloned.record.vodIsStopRecordStream"
                   />
 
                   <template #popIcon>
@@ -92,7 +92,7 @@
                 <InputRow title="Download If No Vod">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.vodGetStreamIfNoVod"
+                    v-model="userConfigCloned.record.vodGetStreamIfNoVod"
                   />
 
                   <template #popIcon>
@@ -105,7 +105,7 @@
                     class="vodDownloadMode flex flex-nowrap items-center gap-2"
                   >
                     <el-select
-                      v-model="userConfig.record.vodMode"
+                      v-model="userConfigCloned.record.vodMode"
                       placeholder="Select"
                       size="small"
                     >
@@ -117,9 +117,11 @@
                       />
                     </el-select>
 
-                    <template v-if="userConfig.record.vodMode === 'countDown'">
+                    <template
+                      v-if="userConfigCloned.record.vodMode === 'countDown'"
+                    >
                       <el-input-number
-                        v-model="userConfig.record.vodCountDownInMinutes"
+                        v-model="userConfigCloned.record.vodCountDownInMinutes"
                         :min="0"
                         :max="1440"
                         size="small"
@@ -130,10 +132,10 @@
                     </template>
 
                     <template
-                      v-else-if="userConfig.record.vodMode === 'timeZone'"
+                      v-else-if="userConfigCloned.record.vodMode === 'timeZone'"
                     >
                       <el-time-picker
-                        v-model="userConfig.record.vodTimeZone"
+                        v-model="userConfigCloned.record.vodTimeZone"
                         placeholder="time zone"
                         size="small"
                         :clearable="false"
@@ -162,7 +164,7 @@
                 <InputRow title="VOD Filename Template">
                   <el-input
                     size="small"
-                    v-model="userConfig.record.vodFileNameTemplate"
+                    v-model="userConfigCloned.record.vodFileNameTemplate"
                     placeholder="Filename Template For VOD"
                   />
 
@@ -193,7 +195,7 @@
                 <InputRow title="Live Filename Template">
                   <el-input
                     size="small"
-                    v-model="userConfig.record.fileNameTemplate"
+                    v-model="userConfigCloned.record.fileNameTemplate"
                     placeholder="Filename Template For Live Record"
                   />
 
@@ -224,7 +226,9 @@
                 <InputRow title="Enable Tag Check">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.checkStreamContentTypeEnable"
+                    v-model="
+                      userConfigCloned.record.checkStreamContentTypeEnable
+                    "
                   />
 
                   <template #popIcon>
@@ -237,7 +241,7 @@
                 <InputRow title="Abort Invalid Tag">
                   <el-switch
                     size="small"
-                    v-model="userConfig.record.abortInvalidRecord"
+                    v-model="userConfigCloned.record.abortInvalidRecord"
                   />
 
                   <template #popIcon>
@@ -249,7 +253,8 @@
                   <el-input
                     size="small"
                     v-model="
-                      userConfig.record.checkStreamContentTypeTargetGameNames
+                      userConfigCloned.record
+                        .checkStreamContentTypeTargetGameNames
                     "
                     placeholder="write game tag here"
                   />
@@ -271,7 +276,7 @@
               <div class="configContent">
                 <InputRow title="Check Stream Interval">
                   <el-input-number
-                    v-model="userConfig.general.checkStreamInterval"
+                    v-model="userConfigCloned.general.checkStreamInterval"
                     :min="30"
                     size="small"
                     controls-position="right"
@@ -288,7 +293,7 @@
                     <el-input
                       disabled
                       size="small"
-                      v-model="userConfig.general.dirToSaveRecord"
+                      v-model="userConfigCloned.general.dirToSaveRecord"
                       placeholder="Filename Template For VOD"
                     />
 
@@ -309,7 +314,7 @@
 
                 <InputRow title="Number of Record limit">
                   <el-input-number
-                    v-model="userConfig.general.numOfDownloadLimit"
+                    v-model="userConfigCloned.general.numOfDownloadLimit"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -324,7 +329,7 @@
                 <InputRow title="Is Show Cmd">
                   <el-switch
                     size="small"
-                    v-model="userConfig.general.showDownloadCmd"
+                    v-model="userConfigCloned.general.showDownloadCmd"
                   />
 
                   <!-- prettier-ignore -->
@@ -336,7 +341,7 @@
                 <InputRow title="Close Cmd when stop">
                   <el-switch
                     size="small"
-                    v-model="userConfig.general.closeCmdWhenAppStop"
+                    v-model="userConfigCloned.general.closeCmdWhenAppStop"
                   />
 
                   <!-- prettier-ignore -->
@@ -348,7 +353,7 @@
                 <InputRow title="Automatically execute on program startup">
                   <el-switch
                     size="small"
-                    v-model="userConfig.general.autoExecuteOnStartup"
+                    v-model="userConfigCloned.general.autoExecuteOnStartup"
                   />
 
                   <!-- prettier-ignore -->
@@ -360,12 +365,41 @@
                 <InputRow title="Automatically execute on computer startup">
                   <el-switch
                     size="small"
-                    v-model="userConfig.general.autoExecuteOnComputerStartup"
+                    v-model="
+                      userConfigCloned.general.autoExecuteOnComputerStartup
+                    "
                   />
 
                   <!-- prettier-ignore -->
                   <template #popIcon>
                     <Explanation :content="general.autoExecuteOnComputerStartup" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="Ensure minimum of resolution">
+                  <el-switch
+                    size="small"
+                    v-model="userConfigCloned.general.ensureMinResolution"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.ensureMinResolution" />
+                  </template>
+                </InputRow>
+
+                <InputRow title="minimum acceptable video resolution">
+                  <el-input-number
+                    v-model="userConfigCloned.general.minResolutionThreshold"
+                    :min="144"
+                    :disabled="!userConfigCloned.general.ensureMinResolution"
+                    size="small"
+                    controls-position="right"
+                  />
+
+                  <!-- prettier-ignore -->
+                  <template #popIcon>
+                    <Explanation :content="general.minResolutionThreshold" />
                   </template>
                 </InputRow>
               </div>
@@ -379,7 +413,7 @@
               <div class="configContent">
                 <InputRow title="Download Retry Interval">
                   <el-input-number
-                    v-model="userConfig.vod.reTryDownloadInterval"
+                    v-model="userConfigCloned.vod.reTryDownloadInterval"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -393,7 +427,7 @@
 
                 <InputRow title="Max ReDownload Times">
                   <el-input-number
-                    v-model="userConfig.vod.maxReDownloadTimes"
+                    v-model="userConfigCloned.vod.maxReDownloadTimes"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -408,7 +442,7 @@
                 <InputRow title="Integrity Check">
                   <el-switch
                     size="small"
-                    v-model="userConfig.vod.IntegrityCheck"
+                    v-model="userConfigCloned.vod.IntegrityCheck"
                   />
 
                   <!-- prettier-ignore -->
@@ -418,11 +452,11 @@
                 </InputRow>
 
                 <InputRow
-                  v-show="userConfig.vod.IntegrityCheck"
+                  v-show="userConfigCloned.vod.IntegrityCheck"
                   title="Loss Duration Allowed"
                 >
                   <el-input-number
-                    v-model="userConfig.vod.LossOfVODDurationAllowed"
+                    v-model="userConfigCloned.vod.LossOfVODDurationAllowed"
                     :min="0"
                     size="small"
                     controls-position="right"
@@ -449,13 +483,12 @@ import useConfig from '../store/config'
 import { Config } from '../types/config'
 import ConfigSystem from '../util/config'
 import { getDirPath } from '../util/common'
+import { cloneDeep, isEqual } from 'lodash'
 import { onBeforeRouteLeave } from 'vue-router'
 import { handleJsonFile } from '../composable/common'
-import { useNotification } from '../store/notification'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const config = useConfig()
-
-const notify = useNotification()
 
 const { importJSON, exportJSON } = handleJsonFile()
 
@@ -465,40 +498,47 @@ const activeNames = ref(['defaultStreamerSetting'])
 
 const loading = ref(true)
 
-const isConfigChanged = ref(false)
+const userConfigCloned = ref(cloneDeep(userConfig.value))
+
+const isConfigChanged = computed(
+  () => !isEqual(userConfig.value, userConfigCloned.value)
+)
 
 const { vod, record, general } = ConfigSystem.explanation
 
 const { recordModeList, vodModeExplanation, wildcardExplanation } = ConfigSystem
 
 const setRecordSaveDir = async () => {
-  if (!userConfig.value) return
+  if (!userConfigCloned.value) return
 
   const res = await getDirPath()
-
   if (!res) return
 
-  userConfig.value.general.dirToSaveRecord = res
+  userConfigCloned.value.general.dirToSaveRecord = res
 }
 
 const saveConfig = async () => {
-  if (!userConfig.value) return
+  if (!userConfigCloned.value) return
 
   try {
-    await config.setConfig(userConfig.value)
+    await config.setConfig(userConfigCloned.value)
 
-    notify.success('configuration saved successfully')
+    ElMessage({
+      message: 'configuration saved successfully',
+      type: 'success'
+    })
 
     ipcRenderer.send(
       'setAutoExeOnComputerStartup',
       config.userConfig.general.autoExecuteOnComputerStartup
     )
-
-    isConfigChanged.value = false
   } catch (error) {
     console.error(error)
 
-    notify.warn('fail to save configuration')
+    ElMessage({
+      message: 'fail to save configuration',
+      type: 'error'
+    })
   }
 }
 
@@ -518,36 +558,36 @@ const exportConfig = async () =>
 
 const resumeConfig = async () => {
   try {
-    userConfig.value = ConfigSystem.defaultSetting
+    userConfigCloned.value = ConfigSystem.defaultSetting
 
-    config.setConfig(userConfig.value)
+    config.setConfig(userConfigCloned.value)
 
-    notify.success('resume default configuration successfully')
+    ElMessage({
+      message: 'resume default configuration successfully',
+      type: 'success'
+    })
   } catch (error) {
     console.error(error)
 
-    notify.warn('fail to resume default configuration')
+    ElMessage({
+      message: 'fail to resume default configuration',
+      type: 'error'
+    })
   }
 }
 
-watch(
-  userConfig,
-  (newValue, oldValue) => {
-    if (oldValue === undefined) return
-
-    isConfigChanged.value = true
-  },
-  { deep: true }
-)
-
-onBeforeRouteLeave((to, from) => {
+onBeforeRouteLeave(async (to, from) => {
   if (!isConfigChanged.value) return
 
-  const answer = window.confirm(
-    'Do you really want to leave? you have unsaved changes!'
-  )
-  // cancel the navigation and stay on the same page
-  if (!answer) return false
+  try {
+    await ElMessageBox.confirm(
+      'Do you really want to leave? you have unsaved changes!'
+    )
+    return true
+  } catch (error) {
+    // cancel the navigation and stay on the same page
+    return false
+  }
 })
 
 onMounted(async () => {

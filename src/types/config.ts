@@ -13,8 +13,12 @@ export interface GeneralSetting {
   closeCmdWhenAppStop: boolean
   /** automatically execute on program startup. */
   autoExecuteOnStartup: boolean
-  /** Automatically execute on computer startup */
+  /** automatically execute on computer startup */
   autoExecuteOnComputerStartup: boolean
+  /** restarts recording if the resolution falls below the set threshold. */
+  ensureMinResolution: boolean
+  /** this value sets the minimum acceptable video resolution. */
+  minResolutionThreshold: number
 }
 
 export interface VodSetting {

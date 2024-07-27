@@ -10,6 +10,11 @@ import { OnlineInfo, Streamer } from '../types/streamer'
 import { DownloadItem, DownloadList } from '../types/download'
 import { FollowedStream, getFullVideos, IVod } from '../api/user'
 
+interface getResolutionRes {
+  width: number | null
+  height: number | null
+}
+
 type GetMediaDurationRes<T extends boolean> = T extends boolean
   ? number
   : string
@@ -33,7 +38,12 @@ export default class Download {
       const config = useConfig()
 
       const {
-        general: { dirToSaveRecord, showDownloadCmd }
+        general: {
+          dirToSaveRecord,
+          showDownloadCmd,
+          ensureMinResolution,
+          minResolutionThreshold
+        }
       } = config.userConfig
       const { user_login, recordSetting } =
         follow.followList.streamers[stream.user_id]
@@ -52,11 +62,24 @@ export default class Download {
         shell: true
       })
 
+      const checkVideoQuality = () => {
+        if (!fs.existsSync(filePath)) {
+          window.setTimeout(checkVideoQuality, 1000, 10)
+          return
+        }
+
+        const { height } = Download.getResolution(filePath)
+        if (height === null || height < minResolutionThreshold)
+          killProcess(task?.pid)
+      }
+
       const spawnFn = async () => {
         await Promise.all([
           Download.addDownloadRecord(stream, task?.pid),
           Download.updateStreamerStatus(stream, true)
         ])
+
+        if (ensureMinResolution) checkVideoQuality()
       }
 
       // FIXME: Unknown reason stopping download live stream、stream end causes cmd spawn error
@@ -145,17 +168,11 @@ export default class Download {
     })
   }
 
-  static getDownloadCmd(
-    sourceUrl: string,
-    filePath: string,
-    isLive = true
-  ) {
+  static getDownloadCmd(sourceUrl: string, filePath: string, isLive = true) {
     const { dir } = path.parse(filePath)
     FileSystem.makeDirIfNotExist(dir)
 
-    const liveSetting = isLive
-      ? `--twitch-disable-hosting --twitch-disable-ads --twitch-disable-reruns `
-      : ''
+    const liveSetting = isLive ? `--twitch-disable-ads ` : ''
     return `streamlink ${liveSetting}${sourceUrl} best -o ${filePath}`
   }
 
@@ -356,6 +373,27 @@ export default class Download {
       case 'queue':
       default:
         return new Date().toJSON()
+    }
+  }
+
+  static getResolution(filePath: string) {
+    const payload: getResolutionRes = { width: null, height: null }
+    try {
+      const res = cp.execSync(
+        `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of default=nw=1 ${filePath}`
+      )
+
+      const resultString = res.toString()
+
+      const width = /width=(\d+)/g.exec(resultString)
+      if (width?.[1]) payload.width = Number(width[1])
+
+      const height = /height=(\d+)/g.exec(resultString)
+      if (height?.[1]) payload.height = Number(height[1])
+
+      return payload
+    } catch {
+      return payload
     }
   }
 

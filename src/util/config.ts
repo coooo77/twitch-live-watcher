@@ -14,7 +14,9 @@ export default class ConfigSystem {
     showDownloadCmd: false,
     closeCmdWhenAppStop: false,
     autoExecuteOnStartup: false,
-    autoExecuteOnComputerStartup: false
+    autoExecuteOnComputerStartup: false,
+    ensureMinResolution: false,
+    minResolutionThreshold: 720
   }
 
   static explanationGeneralSetting: Record<keyof GeneralSetting, string> = {
@@ -26,7 +28,11 @@ export default class ConfigSystem {
     closeCmdWhenAppStop:
       'when show download cmd, close download cmd when app is stopped',
     autoExecuteOnStartup: 'automatically execute on program startup',
-    autoExecuteOnComputerStartup: 'Automatically execute on computer startup'
+    autoExecuteOnComputerStartup: 'automatically execute on computer startup',
+    ensureMinResolution:
+      'restarts recording if the resolution falls below the set threshold',
+    minResolutionThreshold:
+      'this value sets the minimum acceptable video resolution'
   }
 
   static defaultVodSetting: VodSetting = {
