@@ -315,10 +315,14 @@ export default class Download {
 
     const list = download.downloadList
 
-    const existVodIds = list.vodList.queue.map((video) => video.videoID)
+    const { queue, success, onGoing } = list.vodList
+
+    const invalidIdList = [...queue, ...success, ...onGoing].map(
+      (video) => video.videoID
+    )
 
     list.vodList.queue.push(
-      ...downloadItems.filter((item) => !existVodIds.includes(item.videoID))
+      ...downloadItems.filter((item) => !invalidIdList.includes(item.videoID))
     )
 
     await download.setDownloadList(list)
