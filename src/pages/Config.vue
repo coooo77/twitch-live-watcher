@@ -551,6 +551,8 @@ const importConfig = async () => {
   await importJSON(assignConfig)
 
   await saveConfig()
+
+  userConfigCloned.value = cloneDeep(userConfig.value)
 }
 
 const exportConfig = async () =>
