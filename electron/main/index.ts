@@ -14,8 +14,9 @@ import keytar from 'keytar'
 import { join } from 'path'
 import fetch from 'node-fetch'
 import type Electron from 'electron'
+import { existsSync, readdirSync } from 'fs'
 import { release, homedir, userInfo } from 'os'
-import { existsSync, readdirSync, writeFileSync, readFileSync } from 'fs'
+import { writeFile, readFile } from 'fs/promises'
 
 interface debugLoggerData {
   message: string
@@ -614,27 +615,27 @@ class AuthService {
     await AuthService.setKeyChain(AuthService.userID, AuthService.userIDService)
   }
 
-  private static getLoggerData(): debugLoggerData[] {
-    const isLoggerExist = existsSync(AuthService.debugLoggerPath)
-
-    if (!isLoggerExist) return []
-
-    const loggerData = JSON.parse(
-      readFileSync(AuthService.debugLoggerPath, { encoding: 'utf8' })
-    )
-
-    return loggerData
+  private static async getLoggerData(): Promise<debugLoggerData[]> {
+    try {
+      const rawLogData = await readFile(AuthService.debugLoggerPath, {
+        encoding: 'utf8'
+      })
+      const loggerData = JSON.parse(rawLogData)
+      return loggerData
+    } catch (error) {
+      return []
+    }
   }
 
-  public static writeLogger(message: string) {
-    const data = AuthService.getLoggerData()
+  public static async writeLogger(message: string) {
+    const data = await AuthService.getLoggerData()
 
     data.push({
       message,
       date: new Date().toLocaleString()
     })
 
-    writeFileSync(AuthService.debugLoggerPath, JSON.stringify(data), 'utf8')
+    writeFile(AuthService.debugLoggerPath, JSON.stringify(data), 'utf8')
   }
 }
 
